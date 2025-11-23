@@ -24,13 +24,7 @@ from ADSORFIT.src.client.layouts import (
     INTERFACE_THEME_CSS,
     PAGE_CONTAINER_CLASSES,
 )
-from ADSORFIT.src.packages.configurations import configurations
-
-ui_settings = configurations.client.ui
-api_settings = configurations.server.fastapi
-dataset_settings = configurations.server.datasets
-fitting_settings = configurations.server.fitting
-
+from ADSORFIT.src.packages.configurations.client import client_settings
 
 # [INTERFACE CONTROLLER]
 ###############################################################################
@@ -158,7 +152,7 @@ class InterfaceService:
                     self.build_stats_markdown("[ERROR] Could not read uploaded file.")
                 )
                 return
-            url = f"{api_settings.api_base_url}/datasets/load"
+            url = f"{client_settings.ui.api_base_url}/datasets/load"
             result = await self.dataset_endpoint.load_dataset(url, file_bytes, filename)
             self.dataset_state["dataset"] = result.get("dataset")
             dataset_stats.set_content(
@@ -194,7 +188,7 @@ class InterfaceService:
                 if bool(toggle.value)
             ]
 
-            url = f"{api_settings.api_base_url}/fitting/run"
+            url = f"{client_settings.ui.api_base_url}/fitting/run"
             result = await self.fitting_endpoint.start_fitting(
                 url,
                 metadata,
@@ -280,16 +274,16 @@ class InterfaceStructure:
             with ui.column().classes("gap-4 w-full items-stretch"):
                 max_iterations_input = ui.number(
                     "Max iterations",
-                    value=fitting_settings.default_max_iterations,
+                    value=10000,
                     min=1,
-                    max=fitting_settings.max_iterations_upper_bound,
+                    max=1000000,
                     precision=0,
                     step=1,
                 ).classes("w-full")
 
                 save_best_checkbox = ui.checkbox(
                     "Save best fitting data",
-                    value=fitting_settings.save_best_default,
+                    value=False,
                 )
 
                 dataset_stats = ui.markdown(
@@ -307,7 +301,7 @@ class InterfaceStructure:
                         label="Load dataset",
                         auto_upload=True,
                     )
-                    .props(f"accept={','.join(dataset_settings.allowed_extensions)}")
+                    .props(f"accept={','.join([".csv", ".xls", ".xlsx"])}")
                     .classes("w-full")
                 )
 
@@ -326,11 +320,11 @@ class InterfaceStructure:
     def compose_main_page(self) -> None:
         parameter_defaults = self.settings_controller.parameter_defaults()
 
-        ui.page_title(ui_settings.title)
+        ui.page_title(client_settings.ui.title)
         ui.add_head_html(f"<style>{INTERFACE_THEME_CSS}</style>")
 
         with ui.column().classes(PAGE_CONTAINER_CLASSES):
-            ui.markdown(f"## {ui_settings.title}").classes(
+            ui.markdown(f"## {client_settings.ui.title}").classes(
                 "adsorfit-heading text-3xl font-semibold"
             )
             with ui.row().classes("w-full gap-6 items-start flex-wrap md:flex-nowrap"):
@@ -369,10 +363,10 @@ def create_interface() -> InterfaceStructure:
 def launch_interface() -> None:
     create_interface()
     ui.run(
-        host=ui_settings.host,
-        port=ui_settings.port,
-        title=ui_settings.title,
-        show_welcome_message=ui_settings.show_welcome_message,
-        reconnect_timeout=ui_settings.reconnect_timeout,
+        host=client_settings.ui.host,
+        port=client_settings.ui.port,
+        title=client_settings.ui.title,
+        show_welcome_message=client_settings.ui.show_welcome_message,
+        reconnect_timeout=client_settings.ui.reconnect_timeout,
     )
 

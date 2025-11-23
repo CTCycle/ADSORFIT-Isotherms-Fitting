@@ -8,6 +8,7 @@ from os.path import join
 
 from ADSORFIT.src.packages.constants import LOGS_PATH
 
+
 ###############################################################################
 makedirs(LOGS_PATH, exist_ok=True)
 current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

@@ -12,9 +12,13 @@ DATA_PATH = join(RESOURCES_PATH, "database")
 CONFIG_PATH = join(RESOURCES_PATH, "configurations")
 LOGS_PATH = join(RESOURCES_PATH, "logs")
 TEMPLATES_PATH = join(RESOURCES_PATH, "templates")
-CONFIGURATION_FILE = join(SETTING_PATH, "configurations.json")
 ENV_FILE_PATH = join(SETTING_PATH, ".env")
 DATABASE_FILENAME = "sqlite.db"
+
+
+###############################################################################
+SERVER_CONFIGURATION_FILE = join(SETTING_PATH, "server_configurations.json")
+CLIENT_CONFIGURATION_FILE = join(SETTING_PATH, "client_configurations.json")
 
 
 ###############################################################################

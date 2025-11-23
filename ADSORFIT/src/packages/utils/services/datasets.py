@@ -6,7 +6,7 @@ from typing import Any
 
 import pandas as pd
 
-from ADSORFIT.src.packages.configurations import configurations
+from ADSORFIT.src.packages.configurations import server_settings
 from ADSORFIT.src.packages.constants import DATASET_FALLBACK_DELIMITERS
 
 
@@ -14,7 +14,7 @@ from ADSORFIT.src.packages.constants import DATASET_FALLBACK_DELIMITERS
 class DatasetService:
     def __init__(self) -> None:
         self.allowed_extensions = set(
-            configurations.server.datasets.allowed_extensions
+            server_settings.datasets.allowed_extensions
         )
 
     # -------------------------------------------------------------------------------

@@ -4,17 +4,16 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
 from ADSORFIT.src.packages.variables import env_variables
-from ADSORFIT.src.packages.configurations import configurations
+from ADSORFIT.src.packages.configurations import server_settings
 from ADSORFIT.src.server.endpoints.datasets import router as dataset_router
 from ADSORFIT.src.server.endpoints.fitting import router as fit_router
 
 
 ###############################################################################
-fastapi_settings = configurations.server.fastapi
 app = FastAPI(
-    title=fastapi_settings.title,
-    version=fastapi_settings.version,
-    description=fastapi_settings.description,
+    title=server_settings.fastapi.title,
+    version=server_settings.fastapi.version,
+    description=server_settings.fastapi.description,
 )
 
 app.include_router(dataset_router)

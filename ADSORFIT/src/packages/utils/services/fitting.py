@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
 
-from ADSORFIT.src.packages.configurations import configurations
+from ADSORFIT.src.packages.configurations import server_settings
 from ADSORFIT.src.packages.logger import logger
 from ADSORFIT.src.packages.utils.repository.serializer import DataSerializer
 from ADSORFIT.src.packages.utils.services.models import AdsorptionModels
@@ -49,7 +49,7 @@ class ModelSolver:
         """
         results: dict[str, dict[str, Any]] = {}
         evaluations = max(1, int(max_iterations))
-        fitting_settings = configurations.server.fitting
+        fitting_settings = server_settings.fitting
         for model_name, model_config in configuration.items():
             model = self.collection.get_model(model_name)
             signature = inspect.signature(model)
@@ -297,59 +297,8 @@ class FittingPipeline:
             ]
         )
         trimmed = dataset.loc[:, dict.fromkeys(preview_columns).keys()]
-        limited = trimmed.head(configurations.server.fitting.preview_row_limit)
+        limited = trimmed.head(server_settings.fitting.preview_row_limit)
         limited = limited.replace({np.nan: None})
         return limited.to_dict(orient="records")
 
-    # -------------------------------------------------------------------------
-    def bulk_data_fitting(
-        self,
-        dataset: pd.DataFrame,
-        configuration: dict[str, Any],
-        pressure_col: str,
-        uptake_col: str,
-        max_iterations: int,
-        progress_callback: Any | None = None,
-    ) -> dict[str, list[dict[str, Any]]]:
-        """Iterate over the dataset and fit every experiment with the configured models.
-
-        Keyword arguments:
-        dataset -- Tabular collection of experiments with embedded pressure and uptake
-        arrays.
-        configuration -- Collection of model-specific fitting parameters and bounds.
-        pressure_col -- Column storing the pressure measurements per experiment row.
-        uptake_col -- Column storing the uptake measurements per experiment row.
-        max_iterations -- Maximum number of solver evaluations passed to the single
-        experiment fitter.
-        progress_callback -- Optional callable receiving the processed experiment count
-        and total experiments.
-
-        Return value:
-        Dictionary mapping model names to the list of fitting results produced for each
-        experiment.
-        """
-        results: dict[str, list[dict[str, Any]]] = {
-            model: [] for model in configuration.keys()
-        }
-        total_experiments = dataset.shape[0]
-        for index, row in dataset.iterrows():
-            pressure = np.asarray(row[pressure_col], dtype=np.float64)
-            uptake = np.asarray(row[uptake_col], dtype=np.float64)
-            experiment_name = row.get("experiment", f"experiment_{index}")
-            # Reuse the single experiment solver to guarantee consistent fitting logic.
-            experiment_results = self.single_experiment_fit(
-                pressure,
-                uptake,
-                experiment_name,
-                configuration,
-                max_iterations,
-            )
-            for model_name, data in experiment_results.items():
-                results[model_name].append(data)
-
-            if progress_callback is not None:
-                # Notify the caller after each experiment to enable progress bars or
-                # streamed updates in the UI layer.
-                progress_callback(index + 1, total_experiments)
-
-        return results
+    

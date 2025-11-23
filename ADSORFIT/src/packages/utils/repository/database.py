@@ -5,7 +5,7 @@ from typing import Any, Protocol
 
 import pandas as pd
 
-from ADSORFIT.src.packages.configurations import DatabaseSettings, configurations
+from ADSORFIT.src.packages.configurations import DatabaseSettings, server_settings
 from ADSORFIT.src.packages.logger import logger
 from ADSORFIT.src.packages.singleton import singleton
 from ADSORFIT.src.packages.utils.repository.postgres import PostgresRepository
@@ -53,7 +53,7 @@ BACKEND_FACTORIES: dict[str, BackendFactory] = {
 @singleton
 class ADSORFITDatabase:
     def __init__(self) -> None:
-        self.settings = configurations.server.database
+        self.settings = server_settings.database
         self.backend = self._build_backend(self.settings.embedded_database)
 
     # -------------------------------------------------------------------------

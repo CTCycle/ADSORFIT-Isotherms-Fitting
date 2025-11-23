@@ -7,10 +7,7 @@ from typing import Any
 
 import httpx
 
-from ADSORFIT.src.packages.configurations import (
-    configurations, 
-    AppConfigurations
-)
+from ADSORFIT.src.packages.configurations.client import ClientSettings, client_settings
 
 from ADSORFIT.src.packages.constants import MODEL_PARAMETER_DEFAULTS
 
@@ -21,7 +18,7 @@ type ParameterKey = tuple[str, str, str]
 # [SETTINGS]
 ###############################################################################
 class SettingsService:
-    def __init__(self, config: AppConfigurations = configurations) -> None:
+    def __init__(self, config: ClientSettings = client_settings) -> None:
         self.config = config
 
     # -------------------------------------------------------------------------
@@ -32,7 +29,7 @@ class SettingsService:
 # [DATASET ENDPOINT]
 ###############################################################################
 class DatasetEndpointService():
-    def __init__(self, config: AppConfigurations = configurations) -> None:
+    def __init__(self, config: ClientSettings = client_settings) -> None:
         self.config = config
 
     # -------------------------------------------------------------------------
@@ -65,7 +62,7 @@ class DatasetEndpointService():
         files = {"file": (safe_name, file_bytes, "application/octet-stream")}
 
         try:
-            async with httpx.AsyncClient(timeout=self.config.client.ui.http_timeout) as client:
+            async with httpx.AsyncClient(timeout=self.config.ui.http_timeout) as client:
                 response = await client.post(url, files=files)
                 response.raise_for_status()
         except httpx.HTTPStatusError as exc:
@@ -114,7 +111,7 @@ class DatasetEndpointService():
 # [FITTING ENDPOINT]
 ###############################################################################
 class FittingEndpointService():
-    def __init__(self, config: AppConfigurations = configurations) -> None:
+    def __init__(self, config: ClientSettings = client_settings) -> None:
         self.config = config
 
     # -------------------------------------------------------------------------
@@ -266,7 +263,7 @@ class FittingEndpointService():
         }
 
         try:
-            async with httpx.AsyncClient(timeout=self.config.client.ui.http_timeout) as client:
+            async with httpx.AsyncClient(timeout=self.config.ui.http_timeout) as client:
                 response = await client.post(url, json=payload)
                 response.raise_for_status()
         except httpx.HTTPStatusError as exc:

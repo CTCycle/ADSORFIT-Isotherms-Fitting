@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from ADSORFIT.src.packages.configurations import configurations
+from ADSORFIT.src.packages.configurations import server_settings
 from ADSORFIT.src.packages.constants import DEFAULT_DATASET_COLUMN_MAPPING
 from ADSORFIT.src.packages.logger import logger
 
@@ -74,7 +74,7 @@ class AdsorptionDataProcessor:
         Return value:
         None.
         """
-        cutoff = configurations.server.datasets.column_detection_cutoff
+        cutoff = server_settings.datasets.column_detection_cutoff
         for attr, pattern in DEFAULT_DATASET_COLUMN_MAPPING.items():
             matched_cols = [
                 column

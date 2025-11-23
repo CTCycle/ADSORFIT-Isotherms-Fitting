@@ -16,5 +16,6 @@ __pycache__
 *.egg-info
 !.gitkeep
 
-!ADSORFIT/setup/settings/configurations.json
+!ADSORFIT/setup/settings/server_configurations.json
+!ADSORFIT/setup/settings/client_configurations.json
 AGENTS.md
