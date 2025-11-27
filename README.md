@@ -12,12 +12,12 @@ ADSORFIT accelerates adsorption-model research by combining automated curve fitt
 
 ### 2.2 Standard setup
 1. Create and activate a Python 3.12 environment.
-2. Upgrade `pip` and install project dependencies from the repository root with `pip install --upgrade pip` followed by `pip install -e . --use-pep517`.
-3. (Optional) If you plan to run the test suite, install the extra tooling with `pip install -e .[dev]`.
-4. Navigate to `ADSORFIT/src/client` and run `npm install` to install frontend dependencies.
+2. Install backend dependencies from the repository root with `pip install -e . --use-pep517` (or `uv pip install -e .` if you prefer `uv`).
+3. (Optional) Install test/tooling extras with `pip install -e .[dev]`.
+4. Navigate to `ADSORFIT/client` and run `npm install` to install frontend dependencies.
 
 ### 2.3 Windows launcher
-Windows users can still rely on the bundled automation scripts. Launch `start_on_windows.bat` to install dependencies, configure the virtual environment, and open the application. The first run can take a few minutes while Miniconda, project requirements, and Node.js dependencies are prepared.
+Windows users can still rely on the bundled automation scripts. Launch `start_on_windows.bat` to install dependencies with the portable Python + `uv` toolchain, build the React frontend, and open the application. The first run can take a few minutes while requirements and Node.js dependencies are prepared.
 
 If the project directory moves after installation, rerun the menu option **Install project in editable mode** or repeat step 2 from the standard setup while the environment is active.
 
@@ -30,12 +30,12 @@ If the project directory moves after installation, rerun the menu option **Insta
     # Terminal 1: Start backend
     uvicorn ADSORFIT.server.app:app --host 0.0.0.0 --port 8000
     
-    # Terminal 2: Start frontend
-    cd ADSORFIT/src/client
-    npm run dev
+    # Terminal 2: Start frontend (Vite)
+    cd ADSORFIT/client
+    npm run dev -- --host 127.0.0.1 --port 7861
     ```
 
-The interactive UI will be available at `http://127.0.0.1:7861`, while the API documentation can be viewed at `http://localhost:8000/docs`.
+The interactive UI will be available at `http://127.0.0.1:7861` (proxied to the FastAPI backend at `http://127.0.0.1:8000`), and the API documentation can be viewed at `http://localhost:8000/docs`.
 
 Once the UI is open:
 
@@ -57,14 +57,14 @@ The `resources` directory aggregates inputs, outputs, and utilities used during 
 ### 4. Configuration
 Each adsorption model can be configured in the **Model Configuration** area by adjusting parameter bounds, iteration ceilings, and persistence preferences. Bounds are validated to remain positive before fitting begins to avoid infeasible solver states.
 
-Runtime options (host, port, reload mode, and API endpoint) are defined through environment variables. Copy the provided `.env` template from the templates collection, fill in the desired values, and place the finalized file at `ADSORFIT/setup/.env` before launching the server.
+Runtime options (host, port, reload mode, and API endpoint) are defined through environment variables. The backend reads `ADSORFIT/setup/settings/.env` (start from `ADSORFIT/resources/templates/.env`), while the React frontend reads `ADSORFIT/client/.env` for the `VITE_` build-time variables.
 
 | Variable              | Description                                              |
 |-----------------------|----------------------------------------------------------|
-| FASTAPI_HOST          | Host address for the FastAPI server (default is 127.0.0.1) |
-| FASTAPI_PORT          | Port to run the FastAPI server (default is 8000)          |
-| RELOAD                | Enable auto-reload for development (true/false)           |
-| ADSORFIT_API_URL      | Base URL used by the NiceGUI interface to reach the backend |
+| FASTAPI_HOST          | Host address for the FastAPI server (`ADSORFIT/setup/settings/.env`, default 127.0.0.1) |
+| FASTAPI_PORT          | Port to run the FastAPI server (`ADSORFIT/setup/settings/.env`, default 8000) |
+| RELOAD                | Enable auto-reload for development (`ADSORFIT/setup/settings/.env`, true/false) |
+| VITE_API_BASE_URL     | Base URL used by the React frontend (`ADSORFIT/client/.env`, default `/api` for the Vite proxy) |
 
 ## 5. License
 This project is licensed under the terms of the MIT license. See the LICENSE file for details.
