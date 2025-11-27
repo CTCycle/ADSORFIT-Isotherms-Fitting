@@ -13,7 +13,7 @@ def ensure_mapping(value: Any) -> dict[str, Any]:
     return {}
 
 # -----------------------------------------------------------------------------
-def load_configuration_data(path: str) -> dict[str, Any]:
+def load_configurations(path: str) -> dict[str, Any]:
     if not os.path.exists(path):
         raise RuntimeError(f"Configuration file not found: {path}")
     try:

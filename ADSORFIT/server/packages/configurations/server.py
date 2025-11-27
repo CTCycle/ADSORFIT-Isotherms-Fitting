@@ -3,11 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from AEGIS.src.packages.types import coerce_str_sequence
+from ADSORFIT.server.packages.types import coerce_str_sequence
 
 from ADSORFIT.server.packages.configurations import (  
     ensure_mapping,
-    load_configuration_data,
+    load_configurations,
 )
 from ADSORFIT.server.packages.constants import SERVER_CONFIGURATION_FILE
 from ADSORFIT.server.packages.types import (
@@ -194,7 +194,7 @@ def build_server_settings(payload: dict[str, Any] | Any) -> ServerSettings:
 ###############################################################################
 def get_server_settings(config_path: str | None = None) -> ServerSettings:
     path = config_path or SERVER_CONFIGURATION_FILE
-    payload = load_configuration_data(path)
+    payload = load_configurations(path)
 
     return build_server_settings(payload)
 

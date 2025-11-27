@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 REM ============================================================================
-REM == Config
+REM == Configuration
 REM ============================================================================
 set "project_folder=%~dp0"
 set "root_folder=%project_folder%..\"
@@ -22,45 +22,49 @@ set "python_zip_filename=python-%py_version%-embed-amd64.zip"
 set "python_zip_url=https://www.python.org/ftp/python/%py_version%/%python_zip_filename%"
 set "python_zip_path=%python_dir%\%python_zip_filename%"
 
-REM uv release URLs
 set "UV_CHANNEL=latest"
 set "UV_ZIP_AMD=https://github.com/astral-sh/uv/releases/%UV_CHANNEL%/download/uv-x86_64-pc-windows-msvc.zip"
 set "UV_ZIP_ARM=https://github.com/astral-sh/uv/releases/%UV_CHANNEL%/download/uv-aarch64-pc-windows-msvc.zip"
 
-REM pyproject + app
 set "pyproject=%root_folder%pyproject.toml"
 set "UVICORN_MODULE=ADSORFIT.server.app:app"
-set "FRONTEND_DIR=%project_folder%src\client"
+set "FRONTEND_DIR=%project_folder%client"
+set "FRONTEND_DIST=%FRONTEND_DIR%\dist"
 
-REM .env overrides
 set "DOTENV=%setup_dir%\settings\.env"
 
-REM Temp PS script locations (no spaces)
 set "TMPDL=%TEMP%\app_dl.ps1"
 set "TMPEXP=%TEMP%\app_expand.ps1"
 set "TMPTXT=%TEMP%\app_txt.ps1"
 set "TMPFIND=%TEMP%\app_find_uv.ps1"
 set "TMPVER=%TEMP%\app_pyver.ps1"
 
-REM Prefer copy instead of hardlinks to avoid warnings/perf surprises on Windows
 set "UV_LINK_MODE=copy"
 
-title App bootstrap (Python + uv)
+title ADSORFIT bootstrap (Python + uv + frontend)
 echo.
 
 REM ============================================================================
-REM == Prepare helper PowerShell scripts (argument-driven; no nested quoting)
+REM == Guard: npm availability
 REM ============================================================================
-> "%TMPDL%"  echo $ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri $args[0] -OutFile $args[1]
-> "%TMPEXP%" echo $ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $args[0] -DestinationPath $args[1] -Force
-> "%TMPTXT%" echo $ErrorActionPreference='Stop'; (Get-Content -LiteralPath $args[0]) -replace '#import site','import site' ^| Set-Content -LiteralPath $args[0]
-> "%TMPFIND%" echo $ErrorActionPreference='Stop'; (Get-ChildItem -LiteralPath $args[0] -Recurse -Filter 'uv.exe' ^| Select-Object -First 1).FullName
-> "%TMPVER%" echo $ErrorActionPreference='Stop'; ^& $args[0] -c "import platform;print(platform.python_version())"
+for /f "delims=" %%N in ('where npm 2^>nul') do (
+  set "NPM_CMD=%%N"
+  goto have_npm
+)
+echo [FATAL] npm was not found on PATH. Please install Node.js (includes npm).
+goto error
+
+:have_npm
+echo [INFO] npm detected at "!NPM_CMD!"
 
 REM ============================================================================
-REM == Fast path
+REM == Prepare helper PowerShell scripts
 REM ============================================================================
-if exist "%env_marker%" if exist "%python_exe%" if exist "%uv_exe%" goto load_env
+echo $ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri $args[0] -OutFile $args[1] > "%TMPDL%"
+echo $ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $args[0] -DestinationPath $args[1] -Force > "%TMPEXP%"
+echo $ErrorActionPreference='Stop'; (Get-Content -LiteralPath $args[0]) -replace '#import site','import site' ^| Set-Content -LiteralPath $args[0] > "%TMPTXT%"
+echo $ErrorActionPreference='Stop'; (Get-ChildItem -LiteralPath $args[0] -Recurse -Filter 'uv.exe' ^| Select-Object -First 1).FullName > "%TMPFIND%"
+echo $ErrorActionPreference='Stop'; ^& $args[0] -c "import platform;print(platform.python_version())" > "%TMPVER%"
 
 REM ============================================================================
 REM == Step 1: Ensure Python (embeddable)
@@ -88,7 +92,6 @@ REM ============================================================================
 echo [STEP 2/4] Installing uv (portable)
 if not exist "%uv_dir%" md "%uv_dir%" >nul 2>&1
 
-REM Safe default to AMD64; override only if ARM64
 set "uv_zip_url=%UV_ZIP_AMD%"
 if /i "%PROCESSOR_ARCHITECTURE%"=="ARM64" set "uv_zip_url=%UV_ZIP_ARM%"
 
@@ -99,7 +102,10 @@ if not exist "%uv_exe%" (
   del /q "%uv_zip_path%" >nul 2>&1
 
   for /f "delims=" %%F in ('powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%TMPFIND%" "%uv_dir%"') do set "found_uv=%%F"
-  if not defined found_uv echo [FATAL] uv.exe not found after extraction.& goto error
+  if not defined found_uv (
+    echo [FATAL] uv.exe not found after extraction.
+    goto error
+  )
   if /i not "%found_uv%"=="%uv_exe%" copy /y "%found_uv%" "%uv_exe%" >nul
 )
 
@@ -109,7 +115,10 @@ REM ============================================================================
 REM == Step 3: Install deps via uv
 REM ============================================================================
 echo [STEP 3/4] Installing dependencies with uv from pyproject.toml
-if not exist "%pyproject%" echo [FATAL] Missing pyproject: "%pyproject%"& goto error
+if not exist "%pyproject%" (
+  echo [FATAL] Missing pyproject: "%pyproject%"
+  goto error
+)
 
 pushd "%root_folder%" >nul
 "%uv_exe%" sync --python "%python_exe%"
@@ -120,7 +129,16 @@ if not "%sync_ec%"=="0" (
   set "sync_ec=%ERRORLEVEL%"
 )
 popd >nul
-if not "%sync_ec%"=="0" echo [FATAL] uv sync failed with code %sync_ec%.& goto error
+if not "%sync_ec%"=="0" (
+  echo [FATAL] uv sync failed with code %sync_ec%.
+  goto error
+)
+
+"%uv_exe%" pip install -e "%project_folder%.."
+if errorlevel 1 (
+  echo [FATAL] Failed to install project in editable mode.
+  goto error
+)
 
 > "%env_marker%" echo setup_completed
 echo [SUCCESS] Environment setup complete.
@@ -150,7 +168,7 @@ if exist "%DOTENV%" (
         set "v=%%L"
         if defined v (
           if "!v:~0,1!"=="\"" set "v=!v:~1,-1!"
-          if "!v:~0,1!"=="'"  set "v=!v:~1,-1!"
+          if "!v:~0,1!"=="'" set "v=!v:~1,-1!"
         )
         set "!k!=!v!"
       )
@@ -174,27 +192,48 @@ if not exist "%python_exe%" (
 )
 
 echo [RUN] Launching backend via uvicorn (!UVICORN_MODULE!)
+call :kill_port %FASTAPI_PORT%
 start "" /b "%uv_exe%" run --python "%python_exe%" python -m uvicorn %UVICORN_MODULE% --host %FASTAPI_HOST% --port %FASTAPI_PORT% %RELOAD_FLAG% --log-level info
 
-REM Install frontend dependencies if needed
 if not exist "%FRONTEND_DIR%\node_modules" (
   echo [STEP] Installing frontend dependencies...
   pushd "%FRONTEND_DIR%" >nul
   call npm install
+  set "npm_ec=!ERRORLEVEL!"
   popd >nul
+  if not "%npm_ec%"=="0" (
+    echo [FATAL] npm install failed with code %npm_ec%.
+    goto error
+  )
 )
 
-echo [RUN] Launching frontend (React + Vite)
+if not exist "%FRONTEND_DIST%" (
+  echo [STEP] Building frontend
+  pushd "%FRONTEND_DIR%" >nul
+  call npm run build
+  set "npm_build_ec=!ERRORLEVEL!"
+  popd >nul
+  if not "%npm_build_ec%"=="0" (
+    echo [FATAL] Frontend build failed with code %npm_build_ec%.
+    goto error
+  )
+) else (
+  echo [INFO] Frontend build already present at "%FRONTEND_DIST%".
+)
+
+echo [RUN] Launching frontend
 pushd "%FRONTEND_DIR%" >nul
-start "" /b npm run dev
+call :kill_port %UI_PORT%
+start "" /b npm run preview -- --host %UI_HOST% --port %UI_PORT% --strictPort
 popd >nul
 
+start "" "%UI_URL%"
 echo [SUCCESS] Backend and frontend correctly launched
 goto cleanup
 
-rem ============================================================================
-rem Cleanup temp helpers
-rem ============================================================================
+REM ============================================================================
+REM Cleanup temp helpers
+REM ============================================================================
 :cleanup
 del /q "%TMPDL%" "%TMPEXP%" "%TMPTXT%" "%TMPFIND%" "%TMPVER%" >nul 2>&1
 endlocal & exit /b 0
@@ -208,3 +247,11 @@ echo !!! An error occurred during execution. !!!
 pause
 del /q "%TMPDL%" "%TMPEXP%" "%TMPTXT%" "%TMPFIND%" "%TMPVER%" >nul 2>&1
 endlocal & exit /b 1
+
+:kill_port
+set "target_port=%~1"
+if not defined target_port goto :eof
+for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R ":!target_port!"') do (
+  taskkill /PID %%P /F >nul 2>&1
+)
+goto :eof
