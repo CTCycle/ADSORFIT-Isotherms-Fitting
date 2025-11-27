@@ -1,6 +1,12 @@
 ADSORFIT/resources/database/*
 ADSORFIT/setup/python/*
 ADSORFIT/setup/settings/.env
+ADSORFIT/client/node_modules/
+ADSORFIT/client/dist/
+ADSORFIT/client/dist-ssr/
+ADSORFIT/client/.env
+ADSORFIT/client/*.local
+ADSORFIT/client/logs/
 
 __pycache__
 *.lock

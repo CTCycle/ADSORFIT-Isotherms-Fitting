@@ -29,8 +29,8 @@ set "UV_ZIP_ARM=https://github.com/astral-sh/uv/releases/%UV_CHANNEL%/download/u
 
 REM pyproject + app
 set "pyproject=%root_folder%pyproject.toml"
-set "UVICORN_MODULE=ADSORFIT.src.server.app:app"
-set "FRONTEND_MODULE=ADSORFIT.src.client.main"
+set "UVICORN_MODULE=ADSORFIT.server.app:app"
+set "FRONTEND_DIR=%project_folder%src\client"
 
 REM .env overrides
 set "DOTENV=%setup_dir%\settings\.env"
@@ -176,8 +176,18 @@ if not exist "%python_exe%" (
 echo [RUN] Launching backend via uvicorn (!UVICORN_MODULE!)
 start "" /b "%uv_exe%" run --python "%python_exe%" python -m uvicorn %UVICORN_MODULE% --host %FASTAPI_HOST% --port %FASTAPI_PORT% %RELOAD_FLAG% --log-level info
 
-echo [RUN] Launching frontend (!FRONTEND_MODULE!)
-start "" /b "%uv_exe%" run --python "%python_exe%" python -m %FRONTEND_MODULE%
+REM Install frontend dependencies if needed
+if not exist "%FRONTEND_DIR%\node_modules" (
+  echo [STEP] Installing frontend dependencies...
+  pushd "%FRONTEND_DIR%" >nul
+  call npm install
+  popd >nul
+)
+
+echo [RUN] Launching frontend (React + Vite)
+pushd "%FRONTEND_DIR%" >nul
+start "" /b npm run dev
+popd >nul
 
 echo [SUCCESS] Backend and frontend correctly launched
 goto cleanup

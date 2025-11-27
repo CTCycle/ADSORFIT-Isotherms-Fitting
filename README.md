@@ -1,11 +1,12 @@
 # ADSORFIT: Automated Adsorption Model Fitting
 
 ## 1. Project Overview
-ADSORFIT accelerates adsorption-model research by combining automated curve fitting, visual analytics, and experiment management in a single workflow. A shared FastAPI service and NiceGUI interface coordinate dataset ingestion, parameter exploration, and solver execution so interactive users and scripted integrations access the same capabilities. The fitting engine minimizes the least-squares distance between measured uptake profiles and the predictions of classical adsorption models, enabling quick comparison of hypotheses, sensitivity studies, and archiving of the best-performing solutions for future review.
+ADSORFIT accelerates adsorption-model research by combining automated curve fitting, visual analytics, and experiment management in a single workflow. The system consists of a FastAPI backend for data processing and model fitting, and a modern React + TypeScript frontend for interactive visualization and control. The fitting engine minimizes the least-squares distance between measured uptake profiles and the predictions of classical adsorption models, enabling quick comparison of hypotheses, sensitivity studies, and archiving of the best-performing solutions for future review.
 
 ## 2. Installation
 ### 2.1 Prerequisites
-- Python 3.12
+- **Backend**: Python 3.12
+- **Frontend**: Node.js 18+ and npm
 - A recent version of `pip`
 - Recommended: a virtual environment manager such as `venv`, Conda, or Hatch
 
@@ -13,19 +14,25 @@ ADSORFIT accelerates adsorption-model research by combining automated curve fitt
 1. Create and activate a Python 3.12 environment.
 2. Upgrade `pip` and install project dependencies from the repository root with `pip install --upgrade pip` followed by `pip install -e . --use-pep517`.
 3. (Optional) If you plan to run the test suite, install the extra tooling with `pip install -e .[dev]`.
+4. Navigate to `ADSORFIT/src/client` and run `npm install` to install frontend dependencies.
 
 ### 2.3 Windows launcher
-Windows users can still rely on the bundled automation scripts. Launch `start_on_windows.bat` to install dependencies, configure the virtual environment, and open the application menu. The first run can take a few minutes while Miniconda and project requirements are prepared.
+Windows users can still rely on the bundled automation scripts. Launch `start_on_windows.bat` to install dependencies, configure the virtual environment, and open the application. The first run can take a few minutes while Miniconda, project requirements, and Node.js dependencies are prepared.
 
 If the project directory moves after installation, rerun the menu option **Install project in editable mode** or repeat step 2 from the standard setup while the environment is active.
 
 ## 3. How to use
 
-- **Windows**: run `ADSORFIT/start_on_windows.bat` to launch both the FastAPI backend and the UI in a single step.
-- **macOS/Linux**: activate your virtual environment, then start the web stack:
+- **Windows**: run `ADSORFIT/start_on_windows.bat` to launch both the FastAPI backend and the React frontend in a single step.
+- **macOS/Linux**: activate your virtual environment, then start the backend and frontend separately:
 
     ```bash
-    uvicorn ADSORFIT.src.app:app --host 0.0.0.0 --port 8000
+    # Terminal 1: Start backend
+    uvicorn ADSORFIT.server.app:app --host 0.0.0.0 --port 8000
+    
+    # Terminal 2: Start frontend
+    cd ADSORFIT/src/client
+    npm run dev
     ```
 
 The interactive UI will be available at `http://127.0.0.1:7861`, while the API documentation can be viewed at `http://localhost:8000/docs`.
