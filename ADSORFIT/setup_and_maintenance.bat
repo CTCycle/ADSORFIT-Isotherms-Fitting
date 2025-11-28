@@ -22,6 +22,7 @@ set "update_script=%setup_dir%\scripts\update_project.py"
 set "log_path=%project_folder%resources\logs"
 set "uv_lock=%root_folder%uv.lock"
 set "venv_dir=%root_folder%.venv"
+set "client_dir=%project_folder%client"
 
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -163,6 +164,18 @@ if exist "%venv_dir%" (
   echo [INFO] Removed virtual environment "%venv_dir%".
 ) else (
   echo [INFO] No .venv directory found to remove.
+)
+if exist "%client_dir%\node_modules" (
+  rd /s /q "%client_dir%\node_modules"
+  echo [INFO] Removed frontend node_modules at "%client_dir%\node_modules".
+) else (
+  echo [INFO] No frontend node_modules directory found to remove.
+)
+if exist "%client_dir%\package-lock.json" (
+  del /q "%client_dir%\package-lock.json"
+  echo [INFO] Removed frontend package-lock.json at "%client_dir%\package-lock.json".
+) else (
+  echo [INFO] No frontend package-lock.json found to remove.
 )
 echo [SUCCESS] Uninstall completed.
 pause

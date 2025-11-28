@@ -201,8 +201,8 @@ if not exist "%FRONTEND_DIR%\node_modules" (
   call npm install
   set "npm_ec=!ERRORLEVEL!"
   popd >nul
-  if not "%npm_ec%"=="0" (
-    echo [FATAL] npm install failed with code %npm_ec%.
+  if not "!npm_ec!"=="0" (
+    echo [FATAL] npm install failed with code !npm_ec!.
     goto error
   )
 )
@@ -213,8 +213,8 @@ if not exist "%FRONTEND_DIST%" (
   call npm run build
   set "npm_build_ec=!ERRORLEVEL!"
   popd >nul
-  if not "%npm_build_ec%"=="0" (
-    echo [FATAL] Frontend build failed with code %npm_build_ec%.
+  if not "!npm_build_ec!"=="0" (
+    echo [FATAL] Frontend build failed with code !npm_build_ec!.
     goto error
   )
 ) else (
