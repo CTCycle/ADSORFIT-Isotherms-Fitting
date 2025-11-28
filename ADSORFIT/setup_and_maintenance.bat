@@ -171,6 +171,12 @@ if exist "%client_dir%\node_modules" (
 ) else (
   echo [INFO] No frontend node_modules directory found to remove.
 )
+if exist "%client_dir%\dist" (
+  rd /s /q "%client_dir%\dist"
+  echo [INFO] Removed frontend build directory "%client_dir%\dist".
+) else (
+  echo [INFO] No frontend build directory found to remove.
+)
 if exist "%client_dir%\package-lock.json" (
   del /q "%client_dir%\package-lock.json"
   echo [INFO] Removed frontend package-lock.json at "%client_dir%\package-lock.json".
