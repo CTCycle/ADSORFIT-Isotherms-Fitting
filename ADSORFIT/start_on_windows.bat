@@ -134,12 +134,6 @@ if not "%sync_ec%"=="0" (
   goto error
 )
 
-"%uv_exe%" pip install -e "%project_folder%.."
-if errorlevel 1 (
-  echo [FATAL] Failed to install project in editable mode.
-  goto error
-)
-
 > "%env_marker%" echo setup_completed
 echo [SUCCESS] Environment setup complete.
 
