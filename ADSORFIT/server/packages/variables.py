@@ -6,11 +6,9 @@ from dotenv import load_dotenv
 
 from ADSORFIT.server.packages.constants import ENV_FILE_PATH
 from ADSORFIT.server.packages.logger import logger
-from ADSORFIT.server.packages.singleton import singleton
 
 
 ###############################################################################
-@singleton
 class EnvironmentVariables:
     def __init__(self) -> None:
         self.env_path = ENV_FILE_PATH

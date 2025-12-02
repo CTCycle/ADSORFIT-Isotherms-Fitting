@@ -5,8 +5,8 @@ from fastapi.responses import RedirectResponse
 
 from ADSORFIT.server.packages.variables import env_variables
 from ADSORFIT.server.packages.configurations import server_settings
-from ADSORFIT.server.endpoints.datasets import router as dataset_router
-from ADSORFIT.server.endpoints.fitting import router as fit_router
+from ADSORFIT.server.routes.datasets import router as dataset_router
+from ADSORFIT.server.routes.fitting import router as fit_router
 
 
 ###############################################################################

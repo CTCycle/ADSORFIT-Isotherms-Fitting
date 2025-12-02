@@ -7,10 +7,9 @@ import pandas as pd
 
 from ADSORFIT.server.packages.configurations import DatabaseSettings, server_settings
 from ADSORFIT.server.packages.logger import logger
-from ADSORFIT.server.packages.singleton import singleton
-from ADSORFIT.server.packages.utils.repository.postgres import PostgresRepository
-from ADSORFIT.server.packages.utils.repository.schema import Base
-from ADSORFIT.server.packages.utils.repository.sqlite import SQLiteRepository
+from ADSORFIT.server.packages.database.postgres import PostgresRepository
+from ADSORFIT.server.packages.database.schema import Base
+from ADSORFIT.server.packages.database.sqlite import SQLiteRepository
 
 
 ###############################################################################
@@ -50,7 +49,6 @@ BACKEND_FACTORIES: dict[str, BackendFactory] = {
 
 
 ###############################################################################
-@singleton
 class ADSORFITDatabase:
     def __init__(self) -> None:
         self.settings = server_settings.database
