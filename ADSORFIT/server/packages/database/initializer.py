@@ -12,10 +12,17 @@ from ADSORFIT.server.packages.database.sqlite import SQLiteRepository
 from ADSORFIT.server.packages.logger import logger
 
 
-DEFAULT_DATABASE_NAME = "ADSORFIT"
-
-
 ###############################################################################
+def normalize_postgres_engine(engine: str | None) -> str:
+    if not engine:
+        return "postgresql+psycopg"
+    lowered = engine.lower()
+    if lowered in {"postgres", "postgresql"}:
+        return "postgresql+psycopg"
+    return engine
+
+
+# -----------------------------------------------------------------------------
 def build_postgres_connect_args(settings: DatabaseSettings) -> dict[str, str | int]:
     connect_args: dict[str, str | int] = {"connect_timeout": settings.connect_timeout}
     if settings.ssl:
@@ -28,7 +35,7 @@ def build_postgres_connect_args(settings: DatabaseSettings) -> dict[str, str | i
 # -----------------------------------------------------------------------------
 def build_postgres_url(settings: DatabaseSettings, database_name: str) -> str:
     port = settings.port or 5432
-    engine_name = settings.engine or "postgres"
+    engine_name = normalize_postgres_engine(settings.engine)
     safe_username = urllib.parse.quote_plus(settings.username or "")
     safe_password = urllib.parse.quote_plus(settings.password or "")
     return (
@@ -69,8 +76,10 @@ def ensure_postgres_database(settings: DatabaseSettings) -> str:
         raise ValueError("Database host is required for PostgreSQL initialization.")
     if not settings.username:
         raise ValueError("Database username is required for PostgreSQL initialization.")
+    if not settings.database_name:
+        raise ValueError("Database name is required for PostgreSQL initialization.")
 
-    target_database = settings.database_name or DEFAULT_DATABASE_NAME
+    target_database = settings.database_name
     safe_database = target_database.replace('"', '""')
     connect_args = build_postgres_connect_args(settings)
 
@@ -110,8 +119,8 @@ def run_database_initialization() -> None:
         initialize_sqlite_database(settings)
         return
 
-    engine_name = (settings.engine or "postgres").lower()
-    if engine_name not in {"postgres", "postgresql", "postgresql+psycopg2"}:
+    engine_name = normalize_postgres_engine(settings.engine).lower()
+    if engine_name not in {"postgres", "postgresql", "postgresql+psycopg", "postgresql+psycopg2"}:
         raise ValueError(f"Unsupported database engine: {settings.engine}")
 
     ensure_postgres_database(settings)

@@ -11,6 +11,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
 from ADSORFIT.server.packages.configurations import DatabaseSettings
+from ADSORFIT.server.packages.database.initializer import normalize_postgres_engine
 from ADSORFIT.server.packages.logger import logger
 from ADSORFIT.server.packages.database.schema import Base
 
@@ -30,7 +31,7 @@ class PostgresRepository:
             )
 
         port = settings.port or 5432
-        engine_name = settings.engine or "postgres"
+        engine_name = normalize_postgres_engine(settings.engine)
         password = settings.password or ""
         connect_args: dict[str, Any] = {"connect_timeout": settings.connect_timeout}
         if settings.ssl:
