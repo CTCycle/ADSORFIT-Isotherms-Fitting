@@ -6,12 +6,12 @@
     "api_base_url": "http://127.0.0.1:8000"
   },
   "database": {
-    "embedded_database": false,
+    "embedded_database": true,
     "engine": "postgres",
     "host": "localhost",
     "port": 5432,
     "database_name": "ADSORFIT",
-    "username": "admin",
+    "username": "postgres",
     "password": "admin",
     "ssl": false,
     "ssl_ca": null,
