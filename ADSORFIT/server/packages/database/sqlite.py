@@ -81,8 +81,23 @@ class SQLiteRepository:
     def save_into_database(self, df: pd.DataFrame, table_name: str) -> None:
         with self.engine.begin() as conn:
             inspector = inspect(conn)
+            table_cls = None
+            try:
+                table_cls = self.get_table_class(table_name)
+            except ValueError:
+                table_cls = None
+
             if inspector.has_table(table_name):
-                conn.execute(sqlalchemy.text(f'DELETE FROM "{table_name}"'))
+                if table_cls is not None:
+                    existing_cols = {
+                        column["name"] for column in inspector.get_columns(table_name)
+                    }
+                    expected_cols = set(table_cls.__table__.columns.keys())
+                    if existing_cols != expected_cols:
+                        table_cls.__table__.drop(conn, checkfirst=True)
+                        table_cls.__table__.create(conn, checkfirst=True)
+                    else:
+                        conn.execute(sqlalchemy.text(f'DELETE FROM "{table_name}"'))
             df.to_sql(table_name, conn, if_exists="append", index=False)
 
     # -------------------------------------------------------------------------
