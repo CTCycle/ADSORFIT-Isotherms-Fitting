@@ -3,8 +3,8 @@ from __future__ import annotations
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from ADSORFIT.server.schemas.datasets import DatasetLoadResponse
-from ADSORFIT.server.packages.logger import logger
-from ADSORFIT.server.packages.utils.services.datasets import DatasetService
+from ADSORFIT.server.utils.logger import logger
+from ADSORFIT.server.utils.services.datasets import DatasetService
 
 router = APIRouter(prefix="/datasets", tags=["load"])
 dataset_service = DatasetService()

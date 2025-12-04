@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from ADSORFIT.server.packages.configurations.base import (    
+from ADSORFIT.server.utils.configurations.base import (    
     ensure_mapping,
     load_configurations,
 )
-from ADSORFIT.server.packages.configurations.server import (
+from ADSORFIT.server.utils.configurations.server import (
     DatabaseSettings,
     FastAPISettings,
     ServerSettings,

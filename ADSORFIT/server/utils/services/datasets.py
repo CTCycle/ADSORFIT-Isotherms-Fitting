@@ -6,8 +6,8 @@ from typing import Any
 
 import pandas as pd
 
-from ADSORFIT.server.packages.configurations import server_settings
-from ADSORFIT.server.packages.constants import DATASET_FALLBACK_DELIMITERS
+from ADSORFIT.server.utils.configurations import server_settings
+from ADSORFIT.server.utils.constants import DATASET_FALLBACK_DELIMITERS
 
 
 ###############################################################################

@@ -5,12 +5,12 @@ import urllib.parse
 import sqlalchemy
 from sqlalchemy.exc import SQLAlchemyError
 
-from ADSORFIT.server.packages.configurations import DatabaseSettings, server_settings
-from ADSORFIT.server.packages.database.postgres import PostgresRepository
-from ADSORFIT.server.packages.database.schema import Base
-from ADSORFIT.server.packages.database.sqlite import SQLiteRepository
-from ADSORFIT.server.packages.database.utils import normalize_postgres_engine
-from ADSORFIT.server.packages.logger import logger
+from ADSORFIT.server.utils.configurations import DatabaseSettings, server_settings
+from ADSORFIT.server.utils.database.postgres import PostgresRepository
+from ADSORFIT.server.utils.database.schema import Base
+from ADSORFIT.server.utils.database.sqlite import SQLiteRepository
+from ADSORFIT.server.utils.database.utils import normalize_postgres_engine
+from ADSORFIT.server.utils.logger import logger
 
 
 ###############################################################################

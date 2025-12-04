@@ -4,8 +4,8 @@ import json
 import os
 import time
 
-from ADSORFIT.server.packages.database.initializer import initialize_database
-from ADSORFIT.server.packages.logger import logger
+from ADSORFIT.server.utils.database.initializer import initialize_database
+from ADSORFIT.server.utils.logger import logger
 
 
 # -----------------------------------------------------------------------------

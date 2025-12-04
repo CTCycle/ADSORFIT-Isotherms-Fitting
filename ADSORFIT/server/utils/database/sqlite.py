@@ -10,10 +10,10 @@ from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
-from ADSORFIT.server.packages.configurations import DatabaseSettings
-from ADSORFIT.server.packages.constants import DATA_PATH, DATABASE_FILENAME
-from ADSORFIT.server.packages.logger import logger
-from ADSORFIT.server.packages.database.schema import Base
+from ADSORFIT.server.utils.configurations import DatabaseSettings
+from ADSORFIT.server.utils.constants import DATA_PATH, DATABASE_FILENAME
+from ADSORFIT.server.utils.logger import logger
+from ADSORFIT.server.utils.database.schema import Base
 
 
 ###############################################################################

@@ -9,11 +9,11 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
 
-from ADSORFIT.server.packages.configurations import server_settings
-from ADSORFIT.server.packages.logger import logger
-from ADSORFIT.server.packages.utils.repository.serializer import DataSerializer
-from ADSORFIT.server.packages.utils.services.models import AdsorptionModels
-from ADSORFIT.server.packages.utils.services.processing import (
+from ADSORFIT.server.utils.configurations import server_settings
+from ADSORFIT.server.utils.logger import logger
+from ADSORFIT.server.utils.repository.serializer import DataSerializer
+from ADSORFIT.server.utils.services.models import AdsorptionModels
+from ADSORFIT.server.utils.services.processing import (
     AdsorptionDataProcessor,
     DatasetAdapter,
 )

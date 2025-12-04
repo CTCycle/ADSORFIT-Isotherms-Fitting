@@ -6,8 +6,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, status
 
 from ADSORFIT.server.schemas.fitting import FittingRequest, FittingResponse
-from ADSORFIT.server.packages.logger import logger
-from ADSORFIT.server.packages.utils.services.fitting import FittingPipeline
+from ADSORFIT.server.utils.logger import logger
+from ADSORFIT.server.utils.services.fitting import FittingPipeline
 
 router = APIRouter(prefix="/fitting", tags=["fitting"])
 pipeline = FittingPipeline()

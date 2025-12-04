@@ -6,7 +6,7 @@ from datetime import datetime
 from os import makedirs
 from os.path import join
 
-from ADSORFIT.server.packages.constants import LOGS_PATH
+from ADSORFIT.server.utils.constants import LOGS_PATH
 
 
 ###############################################################################

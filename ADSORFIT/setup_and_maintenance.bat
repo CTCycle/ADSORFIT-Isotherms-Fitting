@@ -23,6 +23,7 @@ set "log_path=%project_folder%resources\logs"
 set "uv_lock=%root_folder%uv.lock"
 set "venv_dir=%root_folder%.venv"
 set "client_dir=%project_folder%client"
+set "nodejs_dir=%setup_dir%\nodejs"
 
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -118,8 +119,8 @@ goto :setup_menu
 :uninstall
 echo --------------------------------------------------------------------------
 echo This operation will remove uv artifacts, caches, local Python files,
-echo and the .venv directory. The embedded python folder will be cleaned but
-echo the folder structure will be preserved.
+echo the portable Node.js installation, and the .venv directory. The embedded
+echo python folder will be cleaned but the folder structure will be preserved.
 echo.
 set /p confirm="Type YES to continue: "
 if /i not "%confirm%"=="YES" (
@@ -170,6 +171,12 @@ if exist "%client_dir%\node_modules" (
   echo [INFO] Removed frontend node_modules at "%client_dir%\node_modules".
 ) else (
   echo [INFO] No frontend node_modules directory found to remove.
+)
+if exist "%nodejs_dir%" (
+  rd /s /q "%nodejs_dir%"
+  echo [INFO] Removed portable Node.js directory "%nodejs_dir%".
+) else (
+  echo [INFO] No portable Node.js directory found to remove.
 )
 if exist "%client_dir%\dist" (
   rd /s /q "%client_dir%\dist"

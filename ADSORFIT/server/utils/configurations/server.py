@@ -3,21 +3,21 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from ADSORFIT.server.packages.types import coerce_str_sequence
+from ADSORFIT.server.utils.types import coerce_str_sequence
 
-from ADSORFIT.server.packages.configurations import (  
+from ADSORFIT.server.utils.configurations import (  
     ensure_mapping,
     load_configurations,
 )
-from ADSORFIT.server.packages.constants import SERVER_CONFIGURATION_FILE
-from ADSORFIT.server.packages.types import (
+from ADSORFIT.server.utils.constants import SERVER_CONFIGURATION_FILE
+from ADSORFIT.server.utils.types import (
     coerce_bool,
     coerce_float,
     coerce_int,
     coerce_str,
     coerce_str_or_none,
 )
-from ADSORFIT.server.packages.variables import env_variables
+from ADSORFIT.server.utils.variables import env_variables
 
 # [SERVER SETTINGS]
 ###############################################################################

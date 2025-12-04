@@ -8,9 +8,9 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from ADSORFIT.server.packages.configurations import server_settings
-from ADSORFIT.server.packages.constants import DEFAULT_DATASET_COLUMN_MAPPING
-from ADSORFIT.server.packages.logger import logger
+from ADSORFIT.server.utils.configurations import server_settings
+from ADSORFIT.server.utils.constants import DEFAULT_DATASET_COLUMN_MAPPING
+from ADSORFIT.server.utils.logger import logger
 
 
 ###############################################################################

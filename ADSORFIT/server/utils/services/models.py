@@ -4,7 +4,7 @@ from typing import Any
 
 import numpy as np
 
-from ADSORFIT.server.packages.constants import FITTING_MODEL_NAMES
+from ADSORFIT.server.utils.constants import FITTING_MODEL_NAMES
 
 
 ###############################################################################

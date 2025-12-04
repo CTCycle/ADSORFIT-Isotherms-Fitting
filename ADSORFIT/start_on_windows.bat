@@ -26,6 +26,15 @@ set "UV_CHANNEL=latest"
 set "UV_ZIP_AMD=https://github.com/astral-sh/uv/releases/%UV_CHANNEL%/download/uv-x86_64-pc-windows-msvc.zip"
 set "UV_ZIP_ARM=https://github.com/astral-sh/uv/releases/%UV_CHANNEL%/download/uv-aarch64-pc-windows-msvc.zip"
 
+set "nodejs_version=22.12.0"
+set "nodejs_dir=%setup_dir%\nodejs"
+set "nodejs_zip_filename=node-v%nodejs_version%-win-x64.zip"
+set "nodejs_zip_url=https://nodejs.org/dist/v%nodejs_version%/%nodejs_zip_filename%"
+set "nodejs_zip_path=%nodejs_dir%\%nodejs_zip_filename%"
+set "node_exe=%nodejs_dir%\node.exe"
+set "npm_cmd=%nodejs_dir%\npm.cmd"
+set "env_marker_node=%nodejs_dir%\.is_installed"
+
 set "pyproject=%root_folder%pyproject.toml"
 set "UVICORN_MODULE=ADSORFIT.server.app:app"
 set "FRONTEND_DIR=%project_folder%client"
@@ -38,24 +47,40 @@ set "TMPEXP=%TEMP%\app_expand.ps1"
 set "TMPTXT=%TEMP%\app_txt.ps1"
 set "TMPFIND=%TEMP%\app_find_uv.ps1"
 set "TMPVER=%TEMP%\app_pyver.ps1"
+set "TMPFINDNODE=%TEMP%\app_find_node.ps1"
 
 set "UV_LINK_MODE=copy"
 
-title ADSORFIT bootstrap (Python + uv + frontend)
+title ADSORFIT bootstrap (Python + uv + Node.js + frontend)
 echo.
 
 REM ============================================================================
-REM == Guard: npm availability
+REM == Guard: npm availability (local portable or global)
 REM ============================================================================
-for /f "delims=" %%N in ('where npm 2^>nul') do (
-  set "NPM_CMD=%%N"
+set "NPM_CMD="
+set "NODE_CMD="
+
+REM First check for local portable Node.js (will be installed in next steps)
+if exist "%npm_cmd%" (
+  set "NPM_CMD=%npm_cmd%"
+  set "NODE_CMD=%node_exe%"
+  echo [INFO] Using local portable npm at "!NPM_CMD!"
   goto have_npm
 )
-echo [FATAL] npm was not found on PATH. Please install Node.js (includes npm).
-goto error
+
+REM Fall back to global npm if available
+for /f "delims=" %%N in ('where npm 2^>nul') do (
+  set "NPM_CMD=%%N"
+  for /f "delims=" %%D in ('where node 2^>nul') do set "NODE_CMD=%%D"
+  echo [INFO] Using global npm at "!NPM_CMD!"
+  goto have_npm
+)
+
+REM If neither exists, Node.js will be installed in next steps
+echo [INFO] npm not found yet. Will install portable Node.js...
 
 :have_npm
-echo [INFO] npm detected at "!NPM_CMD!"
+if defined NPM_CMD echo [INFO] npm available at "!NPM_CMD!"
 
 REM ============================================================================
 REM == Prepare helper PowerShell scripts
@@ -65,6 +90,7 @@ echo $ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $args[0] -Destin
 echo $ErrorActionPreference='Stop'; (Get-Content -LiteralPath $args[0]) -replace '#import site','import site' ^| Set-Content -LiteralPath $args[0] > "%TMPTXT%"
 echo $ErrorActionPreference='Stop'; (Get-ChildItem -LiteralPath $args[0] -Recurse -Filter 'uv.exe' ^| Select-Object -First 1).FullName > "%TMPFIND%"
 echo $ErrorActionPreference='Stop'; ^& $args[0] -c "import platform;print(platform.python_version())" > "%TMPVER%"
+echo $ErrorActionPreference='Stop'; (Get-ChildItem -LiteralPath $args[0] -Recurse -Filter 'node.exe' ^| Select-Object -First 1).FullName > "%TMPFINDNODE%"
 
 REM ============================================================================
 REM == Step 1: Ensure Python (embeddable)
@@ -111,10 +137,72 @@ if not exist "%uv_exe%" (
 
 "%uv_exe%" --version >nul 2>&1 && for /f "delims=" %%V in ('"%uv_exe%" --version') do echo %%V
 
+
+
+REM ============================================================================
+
+REM == Step 2.5: Ensure Node.js (portable)
+
+REM ============================================================================
+
+echo [STEP 2.5/5] Installing Node.js (portable)
+
+if not exist "%nodejs_dir%" md "%nodejs_dir%" >nul 2>&1
+
+
+
+if not exist "%node_exe%" (
+
+  echo [DL] %nodejs_zip_url%
+
+  powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%TMPDL%" "%nodejs_zip_url%" "%nodejs_zip_path%" || goto error
+
+  powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%TMPEXP%" "%nodejs_zip_path%" "%nodejs_dir%" || goto error
+
+  del /q "%nodejs_zip_path%" >nul 2>&1
+
+
+
+  for /f "delims=" %%F in ('powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%TMPFINDNODE%" "%nodejs_dir%"') do set "found_node=%%F"
+
+  if not defined found_node (
+
+    echo [FATAL] node.exe not found after extraction.
+
+    goto error
+
+  )
+
+  if /i not "%found_node%"=="%node_exe%" (
+
+    for %%D in ("!found_node!") do set "node_parent=%%~dpD"
+
+    xcopy /s /e /i /q "!node_parent!*" "%nodejs_dir%" >nul
+
+  )
+
+)
+
+
+
+if exist "%node_exe%" (
+
+  for /f "delims=" %%V in ('"%node_exe%" --version') do echo [OK] Node.js ready: %%V
+
+  set "NPM_CMD=%npm_cmd%"
+
+  set "NODE_CMD=%node_exe%"
+
+) else (
+
+  echo [WARN] node.exe not found at expected location. Will try to use global Node.js if available.
+
+)
+
 REM ============================================================================
 REM == Step 3: Install deps via uv
 REM ============================================================================
-echo [STEP 3/4] Installing dependencies with uv from pyproject.toml
+echo [STEP 3/5] Installing dependencies with uv from pyproject.toml
 if not exist "%pyproject%" (
   echo [FATAL] Missing pyproject: "%pyproject%"
   goto error
@@ -140,7 +228,7 @@ echo [SUCCESS] Environment setup complete.
 REM ============================================================================
 REM == Step 4: Prune uv cache
 REM ============================================================================
-echo [STEP 4/4] Pruning uv cache
+echo [STEP 4/5] Pruning uv cache
 if exist "%UV_CACHE_DIR%" rd /s /q "%UV_CACHE_DIR%" || echo [WARN] Could not delete cache dir quickly.
 
 REM ============================================================================
@@ -192,7 +280,7 @@ start "" /b "%uv_exe%" run --python "%python_exe%" python -m uvicorn %UVICORN_MO
 if not exist "%FRONTEND_DIR%\node_modules" (
   echo [STEP] Installing frontend dependencies...
   pushd "%FRONTEND_DIR%" >nul
-  call npm install
+  call "%NPM_CMD%" install
   set "npm_ec=!ERRORLEVEL!"
   popd >nul
   if not "!npm_ec!"=="0" (
@@ -204,7 +292,7 @@ if not exist "%FRONTEND_DIR%\node_modules" (
 if not exist "%FRONTEND_DIST%" (
   echo [STEP] Building frontend
   pushd "%FRONTEND_DIR%" >nul
-  call npm run build
+  call "%NPM_CMD%" run build
   set "npm_build_ec=!ERRORLEVEL!"
   popd >nul
   if not "!npm_build_ec!"=="0" (
@@ -218,7 +306,7 @@ if not exist "%FRONTEND_DIST%" (
 echo [RUN] Launching frontend
 pushd "%FRONTEND_DIR%" >nul
 call :kill_port %UI_PORT%
-start "" /b npm run preview -- --host %UI_HOST% --port %UI_PORT% --strictPort
+start "" /b "%NPM_CMD%" run preview -- --host %UI_HOST% --port %UI_PORT% --strictPort
 popd >nul
 
 start "" "%UI_URL%"
