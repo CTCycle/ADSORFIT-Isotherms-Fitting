@@ -16,11 +16,11 @@ Windows users can enjoy a **completely portable, zero-dependency installation**.
 6. Launch both backend and frontend servers
 7. Open your browser to the application interface
 
-**First Run**: The initial setup takes 2-5 minutes (depending on internet speed) as it downloads Python, Node.js, and all dependencies. The portable installations are stored in `ADSORFIT/setup/` and reused for future launches.
+**First Run**: The initial setup takes 2-5 minutes (depending on internet speed) as it downloads Python, Node.js, and all dependencies. The portable installations are stored in `ADSORFIT/resources/runtimes/` and reused for future launches.
 
 **Subsequent Runs**: After the first setup, launching takes only a few seconds as all dependencies are already in place.
 
-> **Note**: The portable Python and Node.js installations are contained within the project folder, avoiding any system-wide changes. You can move the entire project folder to another location, and it will continue to work.
+> **Note**: The portable Python and Node.js installations are contained within the project folder (`ADSORFIT/resources/runtimes/`), avoiding any system-wide changes. You can move the entire project folder to another location, and it will continue to work.
 
 ### 2.2 macOS / Linux (Manual Setup)
 For macOS and Linux users, you'll need to manually install prerequisites before running the application.
@@ -68,8 +68,8 @@ Upload CSV or Excel adsorption datasets, inspect automatic profiling statistics,
 ## 4. Setup and Maintenance
 Execute `ADSORFIT/setup_and_maintenance.bat` to open the maintenance console. Available actions include:
 
-- **Update project** – pull the latest revision from GitHub using the bundled Git client.
-- **Remove logs** – clear accumulated log files stored in `ADSORFIT/resources/logs`
+- **Update project** - pull the latest revision from GitHub using the bundled Git client.
+- **Remove logs** - clear accumulated log files stored in `ADSORFIT/resources/logs`
 
 ## 5. Resources
 The `resources` directory aggregates inputs, outputs, and utilities used during fitting runs:
@@ -77,17 +77,18 @@ The `resources` directory aggregates inputs, outputs, and utilities used during 
 - **database:** Centralized SQLite storage for uploaded experiments and fitting results. Import CSV or Excel files that follow the template columns (experiment label, temperature in Kelvin, pressure in Pascal, and uptake in mol/g). A sample adsorption dataset is available at `ADSORFIT/resources/templates/adsorption_data.csv`, and external tools such as DB Browser for SQLite can be used for inspection.
 - **logs:** Rolling backend and interface logs, useful for diagnosing solver behavior or API requests. The launcher offers a maintenance shortcut for clearing these files.
 - **templates:** Assets such as the dataset template and environment variable scaffold referenced throughout this README.
+- **runtimes:** Portable Python, Node.js, uv, and related caches managed by the Windows launcher. Delete this folder to force a clean reinstall on the next run.
 
 ## 6. Configuration
 Each adsorption model can be configured in the **Model Configuration** area by adjusting parameter bounds, iteration ceilings, and persistence preferences. Bounds are validated to remain positive before fitting begins to avoid infeasible solver states.
 
-Runtime options (host, port, reload mode, and API endpoint) are defined through environment variables. The backend reads `ADSORFIT/setup/settings/.env` (start from `ADSORFIT/resources/templates/.env`), while the React frontend reads `ADSORFIT/client/.env` for the `VITE_` build-time variables.
+Runtime options (host, port, reload mode, and API endpoint) are defined through environment variables. The backend reads `ADSORFIT/settings/.env` (start from `ADSORFIT/resources/templates/.env`), while the React frontend reads `ADSORFIT/client/.env` for the `VITE_` build-time variables.
 
 | Variable              | Description                                              |
 |-----------------------|----------------------------------------------------------|
-| FASTAPI_HOST          | Host address for the FastAPI server (`ADSORFIT/setup/settings/.env`, default 127.0.0.1) |
-| FASTAPI_PORT          | Port to run the FastAPI server (`ADSORFIT/setup/settings/.env`, default 8000) |
-| RELOAD                | Enable auto-reload for development (`ADSORFIT/setup/settings/.env`, true/false) |
+| FASTAPI_HOST          | Host address for the FastAPI server (`ADSORFIT/settings/.env`, default 127.0.0.1) |
+| FASTAPI_PORT          | Port to run the FastAPI server (`ADSORFIT/settings/.env`, default 8000) |
+| RELOAD                | Enable auto-reload for development (`ADSORFIT/settings/.env`, true/false) |
 | VITE_API_BASE_URL     | Base URL used by the React frontend (`ADSORFIT/client/.env`, default `/api` for the Vite proxy) |
 
 ## 7. License

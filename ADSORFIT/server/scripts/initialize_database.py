@@ -1,30 +1,27 @@
 from __future__ import annotations
 
 import json
-import os
 import time
 
 from ADSORFIT.server.utils.database.initializer import initialize_database
+from ADSORFIT.server.utils.constants import SERVER_CONFIGURATION_FILE
 from ADSORFIT.server.utils.logger import logger
 
 
 # -----------------------------------------------------------------------------
 def load_database_config() -> dict[str, object]:
-    settings_path = os.path.abspath(
-        os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "..",
-            "setup",
-            "settings",
-            "server_configurations.json",
-        )
-    )
     try:
-        with open(settings_path, "r", encoding="utf-8") as file:
+        with open(SERVER_CONFIGURATION_FILE, "r", encoding="utf-8") as file:
             data = json.load(file)
+    except FileNotFoundError:
+        logger.warning("Server configuration not found at %s", SERVER_CONFIGURATION_FILE)
+        return {}
     except (OSError, json.JSONDecodeError) as exc:
-        logger.warning("Unable to read database configuration: %s", exc)
+        logger.warning(
+            "Unable to read database configuration at %s: %s",
+            SERVER_CONFIGURATION_FILE,
+            exc,
+        )
         return {}
     database_config = data.get("database", {})
     return database_config if isinstance(database_config, dict) else {}

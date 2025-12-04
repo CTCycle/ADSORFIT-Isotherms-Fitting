@@ -1,6 +1,9 @@
 ADSORFIT/resources/database/*
-ADSORFIT/setup/python/*
-ADSORFIT/setup/settings/.env
+ADSORFIT/resources/runtimes/python/*
+ADSORFIT/resources/runtimes/nodejs/*
+ADSORFIT/resources/runtimes/uv/*
+ADSORFIT/resources/runtimes/uv_cache/*
+ADSORFIT/settings/.env
 ADSORFIT/client/node_modules/
 ADSORFIT/client/dist/
 ADSORFIT/client/dist-ssr/
@@ -22,6 +25,5 @@ __pycache__
 *.egg-info
 !.gitkeep
 
-!ADSORFIT/setup/settings/server_configurations.json
-!ADSORFIT/setup/settings/client_configurations.json
+!ADSORFIT/settings/server_configurations.json
 AGENTS.md
