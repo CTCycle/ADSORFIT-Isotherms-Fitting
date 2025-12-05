@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import time
 
-from ADSORFIT.server.utils.database.initializer import initialize_database
+from ADSORFIT.server.database.initializer import initialize_database
 from ADSORFIT.server.utils.constants import SERVER_CONFIGURATION_FILE
 from ADSORFIT.server.utils.logger import logger
 

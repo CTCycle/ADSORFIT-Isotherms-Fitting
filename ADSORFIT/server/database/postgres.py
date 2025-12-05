@@ -11,8 +11,8 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
 from ADSORFIT.server.utils.configurations import DatabaseSettings
-from ADSORFIT.server.utils.database.schema import Base
-from ADSORFIT.server.utils.database.utils import normalize_postgres_engine
+from ADSORFIT.server.database.schema import Base
+from ADSORFIT.server.database.utils import normalize_postgres_engine
 from ADSORFIT.server.utils.logger import logger
 
 
