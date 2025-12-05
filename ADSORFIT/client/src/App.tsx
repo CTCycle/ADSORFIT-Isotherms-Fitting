@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
-import { ModelCard } from './components/ModelCard';
-import { ControlsPanel } from './components/ControlsPanel';
+import { Sidebar } from './components/Sidebar';
+import { ConfigPage } from './components/ConfigPage';
+import { ModelsPage } from './components/ModelsPage';
+import { MetricsPage } from './components/MetricsPage';
 import { MODEL_PARAMETER_DEFAULTS } from './constants';
 import { loadDataset, startFitting } from './services';
 import type { DatasetPayload, ModelParameters, ModelConfiguration } from './types';
@@ -11,9 +13,13 @@ interface ModelState {
     parameters: ModelParameters;
 }
 
+type PageType = 'config' | 'models' | 'metrics';
+
 function App() {
+    const [currentPage, setCurrentPage] = useState<PageType>('config');
     const [maxIterations, setMaxIterations] = useState(10000);
     const [saveBest, setSaveBest] = useState(false);
+    const [optimizationMethod, setOptimizationMethod] = useState('LSS');
     const [datasetStats, setDatasetStats] = useState('No dataset loaded.');
     const [fittingStatus, setFittingStatus] = useState('');
     const [dataset, setDataset] = useState<DatasetPayload | null>(null);
@@ -106,43 +112,40 @@ function App() {
     }, [dataset, modelStates, maxIterations, saveBest]);
 
     return (
-        <div style={{ width: '100%', maxWidth: '1152px', margin: '0 auto', padding: '1.5rem' }}>
-            <div className="flex flex-col gap-6">
-                <h1
-                    style={{
-                        fontSize: '1.875rem',
-                        fontWeight: 600,
-                        color: 'var(--slate-900)',
-                        letterSpacing: '0.015em',
-                    }}
-                >
-                    ADSORFIT Model Fitting
-                </h1>
+        <div className="app-container">
+            <header className="app-header">
+                <h1>ADSORFIT Model Fitting</h1>
+            </header>
 
-                <div className="flex flex-row gap-6 items-start flex-wrap md-flex-nowrap w-full">
-                    <ControlsPanel
-                        maxIterations={maxIterations}
-                        onMaxIterationsChange={setMaxIterations}
-                        saveBest={saveBest}
-                        onSaveBestChange={setSaveBest}
-                        datasetStats={datasetStats}
-                        fittingStatus={fittingStatus}
-                        onDatasetUpload={handleDatasetUpload}
-                        onStartFitting={handleStartFitting}
-                    />
+            <div className="app-layout">
+                <Sidebar currentPage={currentPage} onPageChange={setCurrentPage} />
 
-                    <div className="flex flex-col gap-4" style={{ flex: 1, minWidth: '320px' }}>
-                        {Object.entries(MODEL_PARAMETER_DEFAULTS).map(([modelName, parameters]) => (
-                            <ModelCard
-                                key={modelName}
-                                modelName={modelName}
-                                parameters={parameters}
-                                onParametersChange={handleParametersChange}
-                                onToggle={handleModelToggle}
-                            />
-                        ))}
-                    </div>
-                </div>
+                <main className="app-main">
+                    {currentPage === 'config' && (
+                        <ConfigPage
+                            maxIterations={maxIterations}
+                            onMaxIterationsChange={setMaxIterations}
+                            saveBest={saveBest}
+                            onSaveBestChange={setSaveBest}
+                            optimizationMethod={optimizationMethod}
+                            onOptimizationMethodChange={setOptimizationMethod}
+                            datasetStats={datasetStats}
+                            fittingStatus={fittingStatus}
+                            onDatasetUpload={handleDatasetUpload}
+                            onStartFitting={handleStartFitting}
+                        />
+                    )}
+
+                    {currentPage === 'models' && (
+                        <ModelsPage
+                            modelDefaults={MODEL_PARAMETER_DEFAULTS}
+                            onParametersChange={handleParametersChange}
+                            onToggle={handleModelToggle}
+                        />
+                    )}
+
+                    {currentPage === 'metrics' && <MetricsPage />}
+                </main>
             </div>
         </div>
     );
