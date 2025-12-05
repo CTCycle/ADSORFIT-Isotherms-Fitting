@@ -10,6 +10,7 @@ import pandas as pd
 from scipy.optimize import curve_fit
 
 from ADSORFIT.server.utils.configurations import server_settings
+from ADSORFIT.server.utils.constants import MODEL_PARAMETER_DEFAULTS
 from ADSORFIT.server.utils.logger import logger
 from ADSORFIT.server.utils.repository.serializer import DataSerializer
 from ADSORFIT.server.utils.services.models import AdsorptionModels
@@ -17,6 +18,22 @@ from ADSORFIT.server.utils.services.processing import (
     AdsorptionDataProcessor,
     DatasetAdapter,
 )
+
+PARAMETER_ALIAS_MAP: dict[str, dict[str, str]] = {
+    "Langmuir": {
+        "qm": "qsat",
+        "b": "k",
+    },
+    "Freundlich": {
+        "Kf": "k",
+        "n": "exponent",
+    },
+    "Sips": {
+        "qm": "qsat",
+        "b": "k",
+        "n": "exponent",
+    },
+}
 
 
 ###############################################################################
@@ -250,22 +267,64 @@ class FittingPipeline:
         self, configuration: dict[str, dict[str, dict[str, float]]]
     ) -> dict[str, dict[str, dict[str, float]]]:
         normalized: dict[str, dict[str, dict[str, float]]] = {}
+        supported = {
+            self.normalize_model_key(name): name for name in self.solver.collection.model_names
+        }
         for model_name, config in configuration.items():
-            min_values = config.get("min", {})
-            max_values = config.get("max", {})
-            initial_values = config.get("initial", {})
+            normalized_key = self.normalize_model_key(model_name)
+            resolved_name = self.resolve_model_name(model_name)
+            if normalized_key not in supported or resolved_name is None:
+                logger.warning("Skipping unsupported model configuration: %s", model_name)
+                continue
+
+            defaults = MODEL_PARAMETER_DEFAULTS.get(resolved_name, {})
+            alias_map = PARAMETER_ALIAS_MAP.get(resolved_name, {})
             normalized_entry: dict[str, dict[str, float]] = {
                 "min": {},
                 "max": {},
                 "initial": {},
             }
-            for parameter, lower in min_values.items():
-                normalized_entry["min"][parameter] = float(lower)
-            for parameter, upper in max_values.items():
-                normalized_entry["max"][parameter] = float(upper)
-            for parameter, init in initial_values.items():
-                normalized_entry["initial"][parameter] = float(init)
-            normalized[model_name] = normalized_entry
+
+            for parameter, (lower_default, upper_default) in defaults.items():
+                normalized_entry["min"][parameter] = float(lower_default)
+                normalized_entry["max"][parameter] = float(upper_default)
+                normalized_entry["initial"][parameter] = float(
+                    lower_default + (upper_default - lower_default) / 2
+                )
+
+            self.apply_configuration_overrides(
+                normalized_entry,
+                config,
+                alias_map,
+            )
+
+            parameters = set().union(
+                normalized_entry["min"].keys(),
+                normalized_entry["max"].keys(),
+                normalized_entry["initial"].keys(),
+            )
+
+            for parameter in parameters:
+                lower = float(
+                    normalized_entry["min"].get(
+                        parameter, server_settings.fitting.parameter_min_default
+                    )
+                )
+                upper = float(
+                    normalized_entry["max"].get(
+                        parameter, server_settings.fitting.parameter_max_default
+                    )
+                )
+                if upper < lower:
+                    lower, upper = upper, lower
+                normalized_entry["min"][parameter] = lower
+                normalized_entry["max"][parameter] = upper
+                if parameter not in normalized_entry["initial"]:
+                    normalized_entry["initial"][parameter] = float(
+                        lower + (upper - lower) / 2
+                    )
+
+            normalized[resolved_name] = normalized_entry
         return normalized
 
     # -------------------------------------------------------------------------
@@ -300,5 +359,32 @@ class FittingPipeline:
         limited = trimmed.head(server_settings.fitting.preview_row_limit)
         limited = limited.replace({np.nan: None})
         return limited.to_dict(orient="records")
+
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def normalize_model_key(model_name: str) -> str:
+        return model_name.replace("-", "_").replace(" ", "_").upper()
+
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def resolve_model_name(model_name: str) -> str | None:
+        normalized = FittingPipeline.normalize_model_key(model_name)
+        for candidate in MODEL_PARAMETER_DEFAULTS:
+            if FittingPipeline.normalize_model_key(candidate) == normalized:
+                return candidate
+        return None
+
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def apply_configuration_overrides(
+        target: dict[str, dict[str, float]],
+        source: dict[str, dict[str, float]],
+        alias_map: dict[str, str],
+    ) -> None:
+        for bound_type in ("min", "max", "initial"):
+            overrides = source.get(bound_type, {})
+            for parameter, value in overrides.items():
+                backend_param = alias_map.get(parameter, parameter)
+                target[bound_type][backend_param] = float(value)
 
     
