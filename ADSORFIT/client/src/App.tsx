@@ -23,6 +23,8 @@ function App() {
     const [datasetStats, setDatasetStats] = useState('No dataset loaded.');
     const [fittingStatus, setFittingStatus] = useState('');
     const [dataset, setDataset] = useState<DatasetPayload | null>(null);
+    const [datasetName, setDatasetName] = useState<string | null>(null);
+    const [datasetSamples, setDatasetSamples] = useState(0);
     const [modelStates, setModelStates] = useState<Record<string, ModelState>>(() => {
         const initial: Record<string, ModelState> = {};
         Object.entries(MODEL_PARAMETER_DEFAULTS).forEach(([modelName, params]) => {
@@ -53,7 +55,21 @@ function App() {
         setDatasetStats('[INFO] Uploading dataset...');
         const result = await loadDataset(file);
         setDataset(result.dataset);
+
+        if (result.dataset) {
+            setDatasetName(file.name);
+            const recordCount = Array.isArray(result.dataset.records) ? result.dataset.records.length : 0;
+            setDatasetSamples(recordCount);
+        } else {
+            setDatasetName(null);
+            setDatasetSamples(0);
+        }
+
         setDatasetStats(result.message);
+    }, []);
+
+    const handleResetFittingStatus = useCallback(() => {
+        setFittingStatus('');
     }, []);
 
     const handleStartFitting = useCallback(async () => {
@@ -111,10 +127,28 @@ function App() {
         setFittingStatus(result.message);
     }, [dataset, modelStates, maxIterations, saveBest]);
 
+    const methodLabels: Record<string, string> = {
+        LSS: 'Least Squares',
+        BFGS: 'BFGS',
+        'L-BFGS-B': 'L-BFGS-B',
+        'Nelder-Mead': 'Nelder-Mead',
+        Powell: 'Powell',
+    };
+
+    const optimizationLabel = methodLabels[optimizationMethod] || optimizationMethod;
+    const datasetLabel = datasetName || 'none';
+
     return (
         <div className="app-container">
             <header className="app-header">
-                <h1>ADSORFIT Model Fitting</h1>
+                <div className="header-content">
+                    <h1>ADSORFIT Model Fitting</h1>
+                    <div className="header-meta">
+                        <span className="meta-chip">Dataset: {datasetLabel}</span>
+                        <span className="meta-separator">|</span>
+                        <span className="meta-chip">Method: {optimizationLabel}</span>
+                    </div>
+                </div>
             </header>
 
             <div className="app-layout">
@@ -131,8 +165,12 @@ function App() {
                             onOptimizationMethodChange={setOptimizationMethod}
                             datasetStats={datasetStats}
                             fittingStatus={fittingStatus}
+                            datasetName={datasetName}
+                            datasetSamples={datasetSamples}
+                            optimizationLabel={optimizationLabel}
                             onDatasetUpload={handleDatasetUpload}
                             onStartFitting={handleStartFitting}
+                            onResetFittingStatus={handleResetFittingStatus}
                         />
                     )}
 

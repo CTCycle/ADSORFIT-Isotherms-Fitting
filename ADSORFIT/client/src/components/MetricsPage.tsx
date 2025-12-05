@@ -3,8 +3,10 @@ import React from 'react';
 export const MetricsPage: React.FC = () => {
     return (
         <div className="metrics-page">
-            <div className="card" style={{ height: '100%', minHeight: '600px' }}>
-                <h2 className="section-title">Fitting Metrics</h2>
+            <div className="metrics-panel">
+                <div className="metrics-header">
+                    <h2 className="section-title">Fitting Metrics</h2>
+                </div>
                 <div className="plot-canvas">
                     <div className="plot-placeholder">
                         <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

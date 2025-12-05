@@ -10,8 +10,12 @@ interface ConfigPageProps {
     onOptimizationMethodChange: (value: string) => void;
     datasetStats: string;
     fittingStatus: string;
+    datasetName: string | null;
+    datasetSamples: number;
+    optimizationLabel: string;
     onDatasetUpload: (file: File) => void;
     onStartFitting: () => void;
+    onResetFittingStatus: () => void;
 }
 
 export const ConfigPage: React.FC<ConfigPageProps> = ({
@@ -23,27 +27,41 @@ export const ConfigPage: React.FC<ConfigPageProps> = ({
     onOptimizationMethodChange,
     datasetStats,
     fittingStatus,
+    datasetName,
+    datasetSamples,
+    optimizationLabel,
     onDatasetUpload,
     onStartFitting,
+    onResetFittingStatus,
 }) => {
+    const datasetSummary = getDatasetSummary(datasetStats);
+    const datasetBadge = datasetName || 'No dataset loaded';
+    const sampleBadge = datasetSamples > 0 ? `${datasetSamples} samples` : '0 samples';
+
     return (
         <div className="config-page">
-            <div className="config-grid">
-                <div className="card config-section">
-                    <h2 className="section-title">Optimization Settings</h2>
-                    <div className="flex flex-col gap-4">
-                        <NumberInput
-                            label="Max iterations"
-                            value={maxIterations}
-                            onChange={onMaxIterationsChange}
-                            min={1}
-                            max={1000000}
-                            step={1}
-                            precision={0}
-                        />
+            <div className="config-grid-v2">
+                <section className="controls-column">
+                    <div className="form-stack">
+                        <div className="section-heading">
+                            <div className="section-title">Optimization settings</div>
+                            <div className="section-caption">Configure the solver before running the fit.</div>
+                        </div>
 
-                        <div>
-                            <label>Optimization Method</label>
+                        <div className="field-block">
+                            <NumberInput
+                                label="Max iterations"
+                                value={maxIterations}
+                                onChange={onMaxIterationsChange}
+                                min={1}
+                                max={1000000}
+                                step={1}
+                                precision={0}
+                            />
+                        </div>
+
+                        <div className="field-block">
+                            <label className="field-label">Optimization method</label>
                             <select
                                 value={optimizationMethod}
                                 onChange={(e) => onOptimizationMethodChange(e.target.value)}
@@ -57,51 +75,76 @@ export const ConfigPage: React.FC<ConfigPageProps> = ({
                             </select>
                         </div>
 
-                        <Checkbox
-                            label="Save best fitting data"
-                            checked={saveBest}
-                            onChange={onSaveBestChange}
-                        />
-                    </div>
-                </div>
-
-                <div className="card config-section">
-                    <h2 className="section-title">Dataset</h2>
-                    <div className="flex flex-col gap-4">
-                        <FileUpload
-                            label="Load dataset"
-                            accept=".csv,.xls,.xlsx"
-                            onUpload={onDatasetUpload}
-                        />
-
-                        <div>
-                            <h4 style={{ marginBottom: '0.5rem', fontSize: '1rem', fontWeight: 600 }}>
-                                Dataset statistics
-                            </h4>
-                            <div
-                                className="status-area"
-                                style={{ minHeight: '180px' }}
-                                dangerouslySetInnerHTML={{ __html: formatMarkdown(datasetStats) }}
+                        <div className="field-block">
+                            <Checkbox
+                                label="Save best fitting data"
+                                checked={saveBest}
+                                onChange={onSaveBestChange}
                             />
                         </div>
-                    </div>
-                </div>
 
-                <div className="card config-section">
-                    <h2 className="section-title">Fitting Status</h2>
-                    <div className="flex flex-col gap-4">
-                        <textarea
-                            value={fittingStatus}
-                            readOnly
-                            style={{ minHeight: '260px' }}
-                            placeholder="Fitting status will appear here..."
+                        <div className="divider" />
+
+                        <div className="section-heading">
+                            <div className="section-title">Dataset</div>
+                            <div className="section-caption">Load input data before launching the fit.</div>
+                        </div>
+
+                        <div className="field-block">
+                            <FileUpload
+                                label="Load dataset"
+                                accept=".csv,.xls,.xlsx"
+                                onUpload={onDatasetUpload}
+                            />
+                        </div>
+
+                        <div className="dataset-inline">
+                            <span className="inline-pill">{datasetBadge}</span>
+                            <span className="inline-separator">•</span>
+                            <span className="inline-pill">{sampleBadge}</span>
+                        </div>
+
+                        <p className="dataset-preview">{datasetSummary}</p>
+                    </div>
+                </section>
+
+                <section className="panels-column">
+                    <div className="panel dataset-panel resizable-panel">
+                        <div className="panel-header">
+                            <div>
+                                <div className="panel-title">Dataset</div>
+                                <div className="panel-subtitle">
+                                    {datasetBadge} • {sampleBadge}
+                                </div>
+                            </div>
+                            <div className="panel-meta">{optimizationLabel}</div>
+                        </div>
+                        <div
+                            className="panel-body stats-scroll"
+                            dangerouslySetInnerHTML={{ __html: formatMarkdown(datasetStats) }}
                         />
-
-                        <button className="primary" onClick={onStartFitting}>
-                            Start fitting
-                        </button>
                     </div>
-                </div>
+
+                    <div className="panel log-panel resizable-panel">
+                        <div className="panel-header">
+                            <div>
+                                <div className="panel-title">Fitting status</div>
+                                <div className="panel-subtitle">Run the optimizer and monitor logs.</div>
+                            </div>
+                            <div className="panel-actions">
+                                <button className="ghost-button" onClick={onResetFittingStatus}>
+                                    Reset
+                                </button>
+                                <button className="primary" onClick={onStartFitting}>
+                                    Start fitting
+                                </button>
+                            </div>
+                        </div>
+                        <div className="panel-body log-scroll">
+                            <pre className="log-text">{fittingStatus || 'Fitting status will appear here...'}</pre>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
     );
@@ -125,4 +168,12 @@ function formatMarkdown(text: string): string {
     html = html.replace(/\n/g, '<br/>');
 
     return html;
+}
+
+function getDatasetSummary(text: string): string {
+    const normalized = text.replace(/\s+/g, ' ').trim();
+    if (!normalized) {
+        return 'Load a dataset to see quick statistics.';
+    }
+    return normalized.split('. ').slice(0, 2).join('. ').trim();
 }
