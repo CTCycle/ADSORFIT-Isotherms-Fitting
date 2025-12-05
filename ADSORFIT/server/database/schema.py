@@ -135,6 +135,104 @@ class AdsorptionTemkinResults(Base):
 
 
 ###############################################################################
+class AdsorptionTothResults(Base):
+    __tablename__ = "ADSORPTION_TOTH"
+    id = Column(Integer, primary_key=True)
+    experiment_id = Column(
+        Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
+    )
+    lss = Column("LSS", Float)
+    k = Column("k", Float)
+    k_error = Column("k error", Float)
+    qsat = Column("qsat", Float)
+    qsat_error = Column("qsat error", Float)
+    exponent = Column("exponent", Float)
+    exponent_error = Column("exponent error", Float)
+    __table_args__ = (
+        UniqueConstraint("id"),
+        UniqueConstraint("experiment_id"),
+    )
+
+
+###############################################################################
+class AdsorptionDubininRadushkevichResults(Base):
+    __tablename__ = "ADSORPTION_DUBININ_RADUSHKEVICH"
+    id = Column(Integer, primary_key=True)
+    experiment_id = Column(
+        Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
+    )
+    lss = Column("LSS", Float)
+    qsat = Column("qsat", Float)
+    qsat_error = Column("qsat error", Float)
+    beta = Column("beta", Float)
+    beta_error = Column("beta error", Float)
+    __table_args__ = (
+        UniqueConstraint("id"),
+        UniqueConstraint("experiment_id"),
+    )
+
+
+###############################################################################
+class AdsorptionDualSiteLangmuirResults(Base):
+    __tablename__ = "ADSORPTION_DUAL_SITE_LANGMUIR"
+    id = Column(Integer, primary_key=True)
+    experiment_id = Column(
+        Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
+    )
+    lss = Column("LSS", Float)
+    k1 = Column("k1", Float)
+    k1_error = Column("k1 error", Float)
+    qsat1 = Column("qsat1", Float)
+    qsat1_error = Column("qsat1 error", Float)
+    k2 = Column("k2", Float)
+    k2_error = Column("k2 error", Float)
+    qsat2 = Column("qsat2", Float)
+    qsat2_error = Column("qsat2 error", Float)
+    __table_args__ = (
+        UniqueConstraint("id"),
+        UniqueConstraint("experiment_id"),
+    )
+
+
+###############################################################################
+class AdsorptionRedlichPetersonResults(Base):
+    __tablename__ = "ADSORPTION_REDLICH_PETERSON"
+    id = Column(Integer, primary_key=True)
+    experiment_id = Column(
+        Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
+    )
+    lss = Column("LSS", Float)
+    k = Column("k", Float)
+    k_error = Column("k error", Float)
+    a = Column("a", Float)
+    a_error = Column("a error", Float)
+    beta = Column("beta", Float)
+    beta_error = Column("beta error", Float)
+    __table_args__ = (
+        UniqueConstraint("id"),
+        UniqueConstraint("experiment_id"),
+    )
+
+
+###############################################################################
+class AdsorptionJovanovicResults(Base):
+    __tablename__ = "ADSORPTION_JOVANOVIC"
+    id = Column(Integer, primary_key=True)
+    experiment_id = Column(
+        Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
+    )
+    lss = Column("LSS", Float)
+    k = Column("k", Float)
+    k_error = Column("k error", Float)
+    qsat = Column("qsat", Float)
+    qsat_error = Column("qsat error", Float)
+    __table_args__ = (
+        UniqueConstraint("id"),
+        UniqueConstraint("experiment_id"),
+    )
+
+
+###############################################################################
 class AdsorptionBestFit(Base):
     __tablename__ = "ADSORPTION_BEST_FIT"
     id = Column(Integer, primary_key=True)

@@ -34,7 +34,6 @@ export const ConfigPage: React.FC<ConfigPageProps> = ({
     onStartFitting,
     onResetFittingStatus,
 }) => {
-    const datasetSummary = getDatasetSummary(datasetStats);
     const datasetBadge = datasetName || 'No dataset loaded';
     const sampleBadge = datasetSamples > 0 ? `${datasetSamples} samples` : '0 samples';
 
@@ -100,11 +99,9 @@ export const ConfigPage: React.FC<ConfigPageProps> = ({
 
                         <div className="dataset-inline">
                             <span className="inline-pill">{datasetBadge}</span>
-                            <span className="inline-separator">•</span>
+                            <span className="inline-separator">|</span>
                             <span className="inline-pill">{sampleBadge}</span>
                         </div>
-
-                        <p className="dataset-preview">{datasetSummary}</p>
                     </div>
                 </section>
 
@@ -114,7 +111,7 @@ export const ConfigPage: React.FC<ConfigPageProps> = ({
                             <div>
                                 <div className="panel-title">Dataset</div>
                                 <div className="panel-subtitle">
-                                    {datasetBadge} • {sampleBadge}
+                                    {datasetBadge} | {sampleBadge}
                                 </div>
                             </div>
                             <div className="panel-meta">{optimizationLabel}</div>
@@ -154,26 +151,14 @@ export const ConfigPage: React.FC<ConfigPageProps> = ({
 function formatMarkdown(text: string): string {
     let html = text;
 
-    // Headers
     html = html.replace(/^#### (.+)$/gm, '<h4 style="font-weight: 600; margin-bottom: 0.5rem;">$1</h4>');
     html = html.replace(/^### (.+)$/gm, '<h3 style="font-weight: 600; margin-bottom: 0.5rem;">$1</h3>');
 
-    // Bold
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
-    // Lists
     html = html.replace(/^- (.+)$/gm, '<div style="margin-left: 1rem;">• $1</div>');
 
-    // Line breaks
     html = html.replace(/\n/g, '<br/>');
 
     return html;
-}
-
-function getDatasetSummary(text: string): string {
-    const normalized = text.replace(/\s+/g, ' ').trim();
-    if (!normalized) {
-        return 'Load a dataset to see quick statistics.';
-    }
-    return normalized.split('. ').slice(0, 2).join('. ').trim();
 }

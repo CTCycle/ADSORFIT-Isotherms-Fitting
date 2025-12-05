@@ -51,6 +51,7 @@ class PostgresRepository:
         )
         self.Session = sessionmaker(bind=self.engine, future=True)
         self.insert_batch_size = settings.insert_batch_size
+        Base.metadata.create_all(self.engine, checkfirst=True)
 
     # -------------------------------------------------------------------------
     def get_table_class(self, table_name: str) -> Any:

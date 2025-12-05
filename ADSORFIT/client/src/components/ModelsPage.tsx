@@ -50,13 +50,13 @@ export const ModelGridCard: React.FC<ModelGridCardProps> = ({
         <div className={`model-grid-card ${isExpanded ? 'expanded' : ''} ${!enabled ? 'disabled' : ''}`}>
             <div className="model-card-header" onClick={() => enabled && setIsExpanded(!isExpanded)}>
                 <div className="model-card-title">
-                    <strong>{modelName}</strong>
                     <div onClick={handleSwitchClick}>
                         <Switch
                             checked={enabled}
                             onChange={handleToggle}
                         />
                     </div>
+                    <strong>{modelName}</strong>
                 </div>
                 <div className="expand-indicator">
                     {enabled && (

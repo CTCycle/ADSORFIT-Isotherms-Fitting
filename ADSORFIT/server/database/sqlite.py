@@ -26,8 +26,7 @@ class SQLiteRepository:
         )
         self.Session = sessionmaker(bind=self.engine, future=True)
         self.insert_batch_size = settings.insert_batch_size
-        if self.db_path is not None and not os.path.exists(self.db_path):
-            Base.metadata.create_all(self.engine)  
+        Base.metadata.create_all(self.engine, checkfirst=True)  
 
     # -------------------------------------------------------------------------
     def get_table_class(self, table_name: str) -> Any:

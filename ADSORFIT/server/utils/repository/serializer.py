@@ -69,6 +69,69 @@ class DataSerializer:
                 "beta_error": "beta error",
             },
         },
+        "TOTH": {
+            "prefix": "Toth",
+            "table": "ADSORPTION_TOTH",
+            "fields": {
+                "lss": "LSS",
+                "k": "k",
+                "k_error": "k error",
+                "qsat": "qsat",
+                "qsat_error": "qsat error",
+                "exponent": "exponent",
+                "exponent_error": "exponent error",
+            },
+        },
+        "DUBININ_RADUSHKEVICH": {
+            "prefix": "Dubinin-Radushkevich",
+            "table": "ADSORPTION_DUBININ_RADUSHKEVICH",
+            "fields": {
+                "lss": "LSS",
+                "qsat": "qsat",
+                "qsat_error": "qsat error",
+                "beta": "beta",
+                "beta_error": "beta error",
+            },
+        },
+        "DUAL_SITE_LANGMUIR": {
+            "prefix": "Dual-Site Langmuir",
+            "table": "ADSORPTION_DUAL_SITE_LANGMUIR",
+            "fields": {
+                "lss": "LSS",
+                "k1": "k1",
+                "k1_error": "k1 error",
+                "qsat1": "qsat1",
+                "qsat1_error": "qsat1 error",
+                "k2": "k2",
+                "k2_error": "k2 error",
+                "qsat2": "qsat2",
+                "qsat2_error": "qsat2 error",
+            },
+        },
+        "REDLICH_PETERSON": {
+            "prefix": "Redlich-Peterson",
+            "table": "ADSORPTION_REDLICH_PETERSON",
+            "fields": {
+                "lss": "LSS",
+                "k": "k",
+                "k_error": "k error",
+                "a": "a",
+                "a_error": "a error",
+                "beta": "beta",
+                "beta_error": "beta error",
+            },
+        },
+        "JOVANOVIC": {
+            "prefix": "Jovanovic",
+            "table": "ADSORPTION_JOVANOVIC",
+            "fields": {
+                "lss": "LSS",
+                "k": "k",
+                "k_error": "k error",
+                "qsat": "qsat",
+                "qsat_error": "qsat error",
+            },
+        },
     }
     
     # -------------------------------------------------------------------------
