@@ -39,11 +39,11 @@ echo 1. Remove logs
 echo 2. Uninstall app
 echo 3. Exit
 echo.
-set /p sub_choice="Select an option (1-5): "
+set /p sub_choice="Select an option (1-3): "
 
-if "%sub_choice%"=="3" goto :logs
-if "%sub_choice%"=="4" goto :uninstall
-if "%sub_choice%"=="5" goto :exit
+if "%sub_choice%"=="1" goto :logs
+if "%sub_choice%"=="2" goto :uninstall
+if "%sub_choice%"=="3" goto :exit
 echo Invalid option, try again.
 pause
 goto :setup_menu
@@ -99,16 +99,8 @@ if exist "%UV_CACHE_DIR%" (
   echo [INFO] No uv cache directory found to remove.
 )
 if exist "%python_dir%" (
-  for /f "delims=" %%F in ('dir /b "%python_dir%"') do (
-    if /i not "%%F"==".gitkeep" (
-      if exist "%python_dir%\%%F\" (
-        rd /s /q "%python_dir%\%%F"
-      ) else (
-        del /q "%python_dir%\%%F"
-      )
-    )
-  )
-  echo [INFO] Cleaned python directory contents.
+  rd /s /q "%python_dir%"
+  echo [INFO] Removed python directory "%python_dir%".
 ) else (
   echo [INFO] Python directory "%python_dir%" not found.
 )
@@ -141,6 +133,22 @@ if exist "%client_dir%\package-lock.json" (
   echo [INFO] Removed frontend package-lock.json at "%client_dir%\package-lock.json".
 ) else (
   echo [INFO] No frontend package-lock.json found to remove.
+)
+if not exist "%runtimes_dir%" md "%runtimes_dir%" >nul 2>&1
+if exist "%runtimes_dir%" (
+  for /f "delims=" %%F in ('dir /b "%runtimes_dir%"') do (
+    if /i not "%%F"==".gitkeep" (
+      if exist "%runtimes_dir%\%%F\" (
+        rd /s /q "%runtimes_dir%\%%F"
+      ) else (
+        del /q "%runtimes_dir%\%%F"
+      )
+    )
+  )
+  if not exist "%runtimes_dir%\.gitkeep" type nul > "%runtimes_dir%\.gitkeep"
+  echo [INFO] Cleaned runtimes directory; preserved .gitkeep.
+) else (
+  echo [WARN] Could not ensure runtimes directory cleanup.
 )
 echo [SUCCESS] Uninstall completed.
 pause
