@@ -1,11 +1,9 @@
 import React from 'react';
-import { NumberInput, Checkbox, FileUpload } from './UIComponents';
+import { NumberInput, FileUpload } from './UIComponents';
 
 interface ConfigPageProps {
     maxIterations: number;
     onMaxIterationsChange: (value: number) => void;
-    saveBest: boolean;
-    onSaveBestChange: (value: boolean) => void;
     optimizationMethod: string;
     onOptimizationMethodChange: (value: string) => void;
     datasetStats: string;
@@ -21,8 +19,6 @@ interface ConfigPageProps {
 export const ConfigPage: React.FC<ConfigPageProps> = ({
     maxIterations,
     onMaxIterationsChange,
-    saveBest,
-    onSaveBestChange,
     optimizationMethod,
     onOptimizationMethodChange,
     datasetStats,
@@ -72,14 +68,6 @@ export const ConfigPage: React.FC<ConfigPageProps> = ({
                                 <option value="Nelder-Mead">Nelder-Mead</option>
                                 <option value="Powell">Powell</option>
                             </select>
-                        </div>
-
-                        <div className="field-block">
-                            <Checkbox
-                                label="Save best fitting data"
-                                checked={saveBest}
-                                onChange={onSaveBestChange}
-                            />
                         </div>
 
                         <div className="divider" />

@@ -18,7 +18,6 @@ type PageType = 'config' | 'models' | 'metrics';
 function App() {
     const [currentPage, setCurrentPage] = useState<PageType>('config');
     const [maxIterations, setMaxIterations] = useState(10000);
-    const [saveBest, setSaveBest] = useState(false);
     const [optimizationMethod, setOptimizationMethod] = useState('LSS');
     const [datasetStats, setDatasetStats] = useState('No dataset loaded.');
     const [fittingStatus, setFittingStatus] = useState('');
@@ -118,7 +117,6 @@ function App() {
 
         const payload = {
             max_iterations: Math.max(1, Math.round(maxIterations)),
-            save_best: saveBest,
             optimization_method: optimizationMethod,
             parameter_bounds: parameterBounds,
             dataset,
@@ -126,7 +124,7 @@ function App() {
 
         const result = await startFitting(payload);
         setFittingStatus(result.message);
-    }, [dataset, modelStates, maxIterations, optimizationMethod, saveBest]);
+    }, [dataset, modelStates, maxIterations, optimizationMethod]);
 
     const methodLabels: Record<string, string> = {
         LSS: 'Least Squares',
@@ -160,8 +158,6 @@ function App() {
                         <ConfigPage
                             maxIterations={maxIterations}
                             onMaxIterationsChange={setMaxIterations}
-                            saveBest={saveBest}
-                            onSaveBestChange={setSaveBest}
                             optimizationMethod={optimizationMethod}
                             onOptimizationMethodChange={setOptimizationMethod}
                             datasetStats={datasetStats}

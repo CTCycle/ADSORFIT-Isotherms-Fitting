@@ -22,7 +22,6 @@ export interface ModelConfiguration {
 
 export interface FittingPayload {
     max_iterations: number;
-    save_best: boolean;
     optimization_method: 'LSS' | 'BFGS' | 'L-BFGS-B' | 'Nelder-Mead' | 'Powell';
     parameter_bounds: Record<string, ModelConfiguration>;
     dataset: DatasetPayload;

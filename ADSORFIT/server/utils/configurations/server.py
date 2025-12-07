@@ -53,7 +53,6 @@ class DatasetSettings:
 class FittingSettings:
     default_max_iterations: int
     max_iterations_upper_bound: int
-    save_best_default: bool
     parameter_initial_default: float
     parameter_min_default: float
     parameter_max_default: float
@@ -168,7 +167,6 @@ def build_fitting_settings(payload: dict[str, Any] | Any) -> FittingSettings:
     return FittingSettings(
         default_max_iterations=default_iterations,
         max_iterations_upper_bound=upper_bound,
-        save_best_default=coerce_bool(payload.get("save_best_default"), True),
         parameter_initial_default=parameter_initial_default,
         parameter_min_default=parameter_min_default,
         parameter_max_default=parameter_max_default,

@@ -375,7 +375,6 @@ class FittingPipeline:
         configuration: dict[str, dict[str, dict[str, float]]],
         max_iterations: int,
         optimization_method: str,
-        save_best: bool,
         progress_callback: Callable[[int, int], None] | None = None,
     ) -> dict[str, Any]:
         dataframe = self.build_dataframe(dataset_payload)
@@ -415,17 +414,15 @@ class FittingPipeline:
         combined = self.adapter.combine_results(results, processed)
         self.serializer.save_fitting_results(combined)
 
-        best_frame = None
-        if save_best:
-            best_frame = self.adapter.compute_best_models(combined)
-            self.serializer.save_best_fit(best_frame)
+        best_frame = self.adapter.compute_best_models(combined)
+        self.serializer.save_best_fit(best_frame)
 
         experiment_count = int(processed.shape[0])
         response: dict[str, Any] = {
             "status": "success",
             "processed_rows": experiment_count,
             "models": sorted(model_configuration.keys()),
-            "best_model_saved": bool(save_best),
+            "best_model_saved": True,
         }
 
         if best_frame is not None:
@@ -436,8 +433,7 @@ class FittingPipeline:
             f"Experiments processed: {experiment_count}",
             f"Optimization method: {self.solver.normalize_method(optimization_method)}",
         ]
-        if save_best:
-            summary_lines.append("Best model selection stored in database.")
+        summary_lines.append("Best model selection stored in database.")
         response["summary"] = "\n".join(summary_lines)
 
         return response

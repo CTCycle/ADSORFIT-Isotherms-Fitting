@@ -21,7 +21,6 @@ class ModelParameterConfig(BaseModel):
 ###############################################################################
 class FittingRequest(BaseModel):
     max_iterations: int = Field(..., ge=1)
-    save_best: bool = False
     optimization_method: Literal[
         "LSS",
         "BFGS",

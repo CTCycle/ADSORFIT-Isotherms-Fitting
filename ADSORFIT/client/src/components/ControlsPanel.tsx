@@ -1,11 +1,9 @@
 import React from 'react';
-import { NumberInput, Checkbox, FileUpload } from './UIComponents';
+import { NumberInput, FileUpload } from './UIComponents';
 
 interface ControlsPanelProps {
     maxIterations: number;
     onMaxIterationsChange: (value: number) => void;
-    saveBest: boolean;
-    onSaveBestChange: (value: boolean) => void;
     datasetStats: string;
     fittingStatus: string;
     onDatasetUpload: (file: File) => void;
@@ -15,8 +13,6 @@ interface ControlsPanelProps {
 export const ControlsPanel: React.FC<ControlsPanelProps> = ({
     maxIterations,
     onMaxIterationsChange,
-    saveBest,
-    onSaveBestChange,
     datasetStats,
     fittingStatus,
     onDatasetUpload,
@@ -34,8 +30,6 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
                     step={1}
                     precision={0}
                 />
-
-                <Checkbox label="Save best fitting data" checked={saveBest} onChange={onSaveBestChange} />
 
                 <div>
                     <h4 style={{ marginBottom: '0.5rem', fontSize: '1rem', fontWeight: 600 }}>Dataset statistics</h4>

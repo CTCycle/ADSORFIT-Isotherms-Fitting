@@ -25,7 +25,6 @@
   "fitting": {
     "default_max_iterations": 1000,
     "max_iterations_upper_bound": 1000000,
-    "save_best_default": true,
     "default_parameter_initial": 1.0,
     "default_parameter_min": 0.0,
     "default_parameter_max": 100.0,
