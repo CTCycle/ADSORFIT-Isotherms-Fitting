@@ -177,7 +177,6 @@ function App() {
 
                     {currentPage === 'models' && (
                         <ModelsPage
-                            modelDefaults={MODEL_PARAMETER_DEFAULTS}
                             onParametersChange={handleParametersChange}
                             onToggle={handleModelToggle}
                         />

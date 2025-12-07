@@ -1,78 +1,140 @@
-import React, { useState } from 'react';
-import { Expansion, Switch, NumberInput } from './UIComponents';
+import React, { useCallback } from 'react';
+import { Switch } from './UIComponents';
+import { EquationRenderer } from './EquationRenderer';
+import { ModelConfigForm } from './ModelConfigForm';
+import type { AdsorptionModel } from '../adsorptionModels';
 import type { ModelParameters } from '../types';
 
 interface ModelCardProps {
-    modelName: string;
-    parameters: Record<string, [number, number]>;
-    onParametersChange: (modelName: string, parameters: ModelParameters) => void;
-    onToggle: (modelName: string, enabled: boolean) => void;
+    model: AdsorptionModel;
+    isExpanded: boolean;
+    isEnabled: boolean;
+    currentConfig: ModelParameters;
+    onToggle: (id: string) => void;
+    onEnabledChange: (modelName: string, enabled: boolean) => void;
+    onConfigChange: (modelName: string, config: ModelParameters) => void;
 }
 
-export const ModelCard: React.FC<ModelCardProps> = ({ modelName, parameters, onParametersChange, onToggle }) => {
-    const [enabled, setEnabled] = useState(true);
-    const [expansionDisabled, setExpansionDisabled] = useState(false);
-    const [paramValues, setParamValues] = useState<ModelParameters>(() => {
-        const initial: ModelParameters = {};
-        Object.entries(parameters).forEach(([name, [min, max]]) => {
-            initial[name] = { min, max };
-        });
-        return initial;
-    });
+/**
+ * ModelCard: Displays an adsorption model in a collapsible card format.
+ * 
+ * Collapsed state: Shows model name, description, and rendered equation.
+ * Expanded state: Shows only the configuration form for parameter bounds.
+ * 
+ * This design ensures description and equation are hidden when expanded,
+ * and restored when collapsed again.
+ */
+export const ModelCard: React.FC<ModelCardProps> = ({
+    model,
+    isExpanded,
+    isEnabled,
+    currentConfig,
+    onToggle,
+    onEnabledChange,
+    onConfigChange,
+}) => {
+    const handleEnabledToggle = useCallback(
+        (checked: boolean) => {
+            onEnabledChange(model.name, checked);
+        },
+        [model.name, onEnabledChange]
+    );
 
-    const handleToggle = (checked: boolean) => {
-        setEnabled(checked);
-        setExpansionDisabled(!checked);
-        onToggle(modelName, checked);
-    };
+    const handleConfigChange = useCallback(
+        (config: ModelParameters) => {
+            onConfigChange(model.name, config);
+        },
+        [model.name, onConfigChange]
+    );
 
-    const handleParameterChange = (paramName: string, boundType: 'min' | 'max', value: number) => {
-        const updated = {
-            ...paramValues,
-            [paramName]: {
-                ...paramValues[paramName],
-                [boundType]: value,
-            },
-        };
-        setParamValues(updated);
-        onParametersChange(modelName, updated);
-    };
+    const handleSwitchClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+    }, []);
+
+    const handleHeaderClick = useCallback(() => {
+        if (isEnabled) {
+            onToggle(model.id);
+        }
+    }, [isEnabled, model.id, onToggle]);
+
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleHeaderClick();
+            }
+        },
+        [handleHeaderClick]
+    );
+
+    const cardId = `model-card-${model.id}`;
+    const contentId = `model-content-${model.id}`;
 
     return (
-        <div className="card" style={{ flex: 1, minWidth: '320px' }}>
-            <div className="flex flex-col gap-3">
-                <div className="flex flex-row items-center justify-between gap-3 w-full">
-                    <div className="flex flex-row items-center gap-2">
-                        <strong>{modelName}</strong>
-                        <Switch checked={enabled} onChange={handleToggle} />
+        <div
+            className={`model-grid-card ${isExpanded ? 'expanded' : ''} ${!isEnabled ? 'disabled' : ''}`}
+            id={cardId}
+        >
+            {/* Card Header - Always visible */}
+            <div
+                className="model-card-header"
+                onClick={handleHeaderClick}
+                role="button"
+                aria-expanded={isExpanded}
+                aria-controls={contentId}
+                tabIndex={0}
+                onKeyDown={handleKeyDown}
+            >
+                <div className="model-card-title">
+                    <div onClick={handleSwitchClick}>
+                        <Switch checked={isEnabled} onChange={handleEnabledToggle} />
+                    </div>
+                    <strong>{model.name}</strong>
+                </div>
+                <div className="expand-indicator">
+                    {isEnabled && (
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            style={{
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.3s',
+                            }}
+                            aria-hidden="true"
+                        >
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    )}
+                </div>
+            </div>
+
+            {/* Collapsed state: Show description and equation ONLY */}
+            {!isExpanded && isEnabled && (
+                <div className="model-card-collapsed-content">
+                    <p className="model-description">{model.shortDescription}</p>
+                    <div className="model-equation">
+                        <EquationRenderer latex={model.equationLatex} />
                     </div>
                 </div>
+            )}
 
-                <Expansion title="Configure parameters" disabled={expansionDisabled}>
-                    <div className="flex flex-col gap-3 w-full">
-                        {Object.entries(parameters).map(([paramName, [minDefault, maxDefault]]) => (
-                            <div key={paramName} className="flex flex-row gap-3 flex-wrap w-full">
-                                <NumberInput
-                                    label={`${paramName} min`}
-                                    value={paramValues[paramName]?.min ?? minDefault}
-                                    onChange={(value) => handleParameterChange(paramName, 'min', value)}
-                                    min={0}
-                                    step={0.0001}
-                                    precision={4}
-                                />
-                                <NumberInput
-                                    label={`${paramName} max`}
-                                    value={paramValues[paramName]?.max ?? maxDefault}
-                                    onChange={(value) => handleParameterChange(paramName, 'max', value)}
-                                    min={0}
-                                    step={0.0001}
-                                    precision={4}
-                                />
-                            </div>
-                        ))}
-                    </div>
-                </Expansion>
-            </div>
+            {/* Expanded state: Show configuration form ONLY */}
+            {isExpanded && isEnabled && (
+                <div className="model-card-content" id={contentId}>
+                    <ModelConfigForm
+                        modelId={model.id}
+                        parameterDefaults={model.parameterDefaults}
+                        value={currentConfig}
+                        onChange={handleConfigChange}
+                    />
+                </div>
+            )}
         </div>
     );
 };
+
+export default ModelCard;
