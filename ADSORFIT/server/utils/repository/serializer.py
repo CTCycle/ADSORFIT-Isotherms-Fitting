@@ -27,7 +27,8 @@ class DataSerializer:
             "prefix": "Langmuir",
             "table": "ADSORPTION_LANGMUIR",
             "fields": {
-                "lss": "LSS",
+                "optimization_method": "optimization method",
+                "score": "score",
                 "k": "k",
                 "k_error": "k error",
                 "qsat": "qsat",
@@ -38,7 +39,8 @@ class DataSerializer:
             "prefix": "Sips",
             "table": "ADSORPTION_SIPS",
             "fields": {
-                "lss": "LSS",
+                "optimization_method": "optimization method",
+                "score": "score",
                 "k": "k",
                 "k_error": "k error",
                 "qsat": "qsat",
@@ -51,7 +53,8 @@ class DataSerializer:
             "prefix": "Freundlich",
             "table": "ADSORPTION_FREUNDLICH",
             "fields": {
-                "lss": "LSS",
+                "optimization_method": "optimization method",
+                "score": "score",
                 "k": "k",
                 "k_error": "k error",
                 "exponent": "exponent",
@@ -62,7 +65,8 @@ class DataSerializer:
             "prefix": "Temkin",
             "table": "ADSORPTION_TEMKIN",
             "fields": {
-                "lss": "LSS",
+                "optimization_method": "optimization method",
+                "score": "score",
                 "k": "k",
                 "k_error": "k error",
                 "beta": "beta",
@@ -73,7 +77,8 @@ class DataSerializer:
             "prefix": "Toth",
             "table": "ADSORPTION_TOTH",
             "fields": {
-                "lss": "LSS",
+                "optimization_method": "optimization method",
+                "score": "score",
                 "k": "k",
                 "k_error": "k error",
                 "qsat": "qsat",
@@ -86,7 +91,8 @@ class DataSerializer:
             "prefix": "Dubinin-Radushkevich",
             "table": "ADSORPTION_DUBININ_RADUSHKEVICH",
             "fields": {
-                "lss": "LSS",
+                "optimization_method": "optimization method",
+                "score": "score",
                 "qsat": "qsat",
                 "qsat_error": "qsat error",
                 "beta": "beta",
@@ -97,7 +103,8 @@ class DataSerializer:
             "prefix": "Dual-Site Langmuir",
             "table": "ADSORPTION_DUAL_SITE_LANGMUIR",
             "fields": {
-                "lss": "LSS",
+                "optimization_method": "optimization method",
+                "score": "score",
                 "k1": "k1",
                 "k1_error": "k1 error",
                 "qsat1": "qsat1",
@@ -112,7 +119,8 @@ class DataSerializer:
             "prefix": "Redlich-Peterson",
             "table": "ADSORPTION_REDLICH_PETERSON",
             "fields": {
-                "lss": "LSS",
+                "optimization_method": "optimization method",
+                "score": "score",
                 "k": "k",
                 "k_error": "k error",
                 "a": "a",
@@ -125,7 +133,8 @@ class DataSerializer:
             "prefix": "Jovanovic",
             "table": "ADSORPTION_JOVANOVIC",
             "fields": {
-                "lss": "LSS",
+                "optimization_method": "optimization method",
+                "score": "score",
                 "k": "k",
                 "k_error": "k error",
                 "qsat": "qsat",

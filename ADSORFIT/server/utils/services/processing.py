@@ -191,8 +191,8 @@ class DatasetAdapter:
         dataset -- Aggregated dataset to be enriched with fitting outputs.
 
         Return value:
-        DataFrame with additional columns per model containing LSS and parameter
-        estimates.
+        DataFrame with additional columns per model containing the optimization
+        score, method, and parameter estimates.
         """
         if not fitting_results:
             logger.warning("No fitting results were provided")
@@ -205,8 +205,11 @@ class DatasetAdapter:
                 continue
             params = entries[0].get("arguments", [])
             # Columns for each model store experiment-level metrics aligned by order.
-            result_df[f"{model_name} LSS"] = [
-                entry.get("LSS", np.nan) for entry in entries
+            result_df[f"{model_name} score"] = [
+                entry.get("score", np.nan) for entry in entries
+            ]
+            result_df[f"{model_name} optimization method"] = [
+                entry.get("optimization_method") for entry in entries
             ]
             for index, param in enumerate(params):
                 result_df[f"{model_name} {param}"] = [
@@ -222,24 +225,26 @@ class DatasetAdapter:
     # -------------------------------------------------------------------------
     @staticmethod
     def compute_best_models(dataset: pd.DataFrame) -> pd.DataFrame:
-        """Determine the best and worst model per experiment based on least squares scores.
+        """Determine the best and worst model per experiment based on optimization scores.
 
         Keyword arguments:
-        dataset -- Dataset containing least squares score columns for each model.
+        dataset -- Dataset containing per-model score columns for each experiment.
 
         Return value:
         DataFrame extended with ``best model`` and ``worst model`` columns.
         """
-        lss_columns = [column for column in dataset.columns if column.endswith("LSS")]
-        if not lss_columns:
-            logger.info("No LSS columns found; best model computation skipped")
+        score_columns = [column for column in dataset.columns if column.endswith("score")]
+        if not score_columns:
+            logger.info("No score columns found; best model computation skipped")
             return dataset
 
         best = dataset.copy()
-        # Minimum LSS identifies the best fitting model per experiment while the
+        # Minimum score identifies the best fitting model per experiment while the
         # maximum highlights underperforming fits for diagnostics.
-        best["best model"] = dataset[lss_columns].idxmin(axis=1).str.replace(" LSS", "")
-        best["worst model"] = (
-            dataset[lss_columns].idxmax(axis=1).str.replace(" LSS", "")
+        best["best model"] = dataset[score_columns].idxmin(axis=1).str.replace(
+            " score", ""
+        )
+        best["worst model"] = dataset[score_columns].idxmax(axis=1).str.replace(
+            " score", ""
         )
         return best

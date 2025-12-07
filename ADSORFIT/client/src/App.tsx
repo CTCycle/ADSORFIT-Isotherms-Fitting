@@ -119,13 +119,14 @@ function App() {
         const payload = {
             max_iterations: Math.max(1, Math.round(maxIterations)),
             save_best: saveBest,
+            optimization_method: optimizationMethod,
             parameter_bounds: parameterBounds,
             dataset,
         };
 
         const result = await startFitting(payload);
         setFittingStatus(result.message);
-    }, [dataset, modelStates, maxIterations, saveBest]);
+    }, [dataset, modelStates, maxIterations, optimizationMethod, saveBest]);
 
     const methodLabels: Record<string, string> = {
         LSS: 'Least Squares',

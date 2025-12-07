@@ -7,7 +7,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from scipy.optimize import curve_fit
+from scipy.optimize import curve_fit, minimize
 
 from ADSORFIT.server.utils.configurations import server_settings
 from ADSORFIT.server.utils.constants import MODEL_PARAMETER_DEFAULTS
@@ -19,21 +19,38 @@ from ADSORFIT.server.utils.services.processing import (
     DatasetAdapter,
 )
 
+SUPPORTED_OPTIMIZATION_METHODS: tuple[str, ...] = (
+    "LSS",
+    "BFGS",
+    "L-BFGS-B",
+    "Nelder-Mead",
+    "Powell",
+)
+BOUNDS_COMPATIBLE_METHODS = {"L-BFGS-B", "Powell"}
+DEFAULT_OPTIMIZATION_METHOD = "LSS"
+
 PARAMETER_ALIAS_MAP: dict[str, dict[str, str]] = {
-    "Langmuir": {
+    model_name: {} for model_name in MODEL_PARAMETER_DEFAULTS
+}
+PARAMETER_ALIAS_MAP["Langmuir"].update(
+    {
         "qm": "qsat",
         "b": "k",
-    },
-    "Freundlich": {
+    }
+)
+PARAMETER_ALIAS_MAP["Freundlich"].update(
+    {
         "Kf": "k",
         "n": "exponent",
-    },
-    "Sips": {
+    }
+)
+PARAMETER_ALIAS_MAP["Sips"].update(
+    {
         "qm": "qsat",
         "b": "k",
         "n": "exponent",
-    },
-}
+    }
+)
 
 
 ###############################################################################
@@ -49,6 +66,7 @@ class ModelSolver:
         experiment_name: str,
         configuration: dict[str, Any],
         max_iterations: int,
+        optimization_method: str,
     ) -> dict[str, dict[str, Any]]:
         """Fit every configured model against a single experiment dataset.
 
@@ -58,7 +76,7 @@ class ModelSolver:
         experiment_name -- Identifier of the current experiment, used for logging.
         configuration -- Per-model fitting configuration, including bounds and initial
         guesses.
-        max_iterations -- Maximum number of solver evaluations allowed by ``curve_fit``.
+        max_iterations -- Maximum number of solver evaluations allowed by the optimizer.
 
         Return value:
         Dictionary keyed by model names containing optimal parameters, errors, and
@@ -67,6 +85,7 @@ class ModelSolver:
         results: dict[str, dict[str, Any]] = {}
         evaluations = max(1, int(max_iterations))
         fitting_settings = server_settings.fitting
+        normalized_method = self.normalize_method(optimization_method)
         for model_name, model_config in configuration.items():
             model = self.collection.get_model(model_name)
             signature = inspect.signature(model)
@@ -93,34 +112,34 @@ class ModelSolver:
             ]
 
             try:
-                optimal_params, covariance = curve_fit(
+                optimal_params, covariance, errors, predicted = self.solve_model(
+                    normalized_method,
                     model,
                     pressure,
                     uptake,
-                    p0=initial,
-                    bounds=(lower, upper),
-                    maxfev=evaluations,
-                    check_finite=True,
-                    absolute_sigma=False,
+                    initial,
+                    lower,
+                    upper,
+                    evaluations,
                 )
                 optimal_list = optimal_params.tolist()
-                predicted = model(pressure, *optimal_params)
-                # Least squares score is kept for ranking models within the pipeline.
-                lss = float(np.sum((uptake - predicted) ** 2, dtype=np.float64))
-                errors = (
-                    np.sqrt(np.diag(covariance)).tolist()
-                    if covariance is not None
-                    else None
+                covariance_list = covariance.tolist() if covariance is not None else None
+                error_list = (
+                    errors.tolist()
+                    if isinstance(errors, np.ndarray)
+                    else errors
                 )
+                if error_list is None:
+                    error_list = [np.nan] * len(param_names)
+                else:
+                    error_list = list(error_list)
+                score = float(np.sum((uptake - predicted) ** 2, dtype=np.float64))
                 results[model_name] = {
                     "optimal_params": optimal_list,
-                    "covariance": covariance.tolist()
-                    if covariance is not None
-                    else None,
-                    "errors": errors
-                    if errors is not None
-                    else [np.nan] * len(param_names),
-                    "LSS": lss,
+                    "covariance": covariance_list,
+                    "errors": error_list,
+                    "score": score,
+                    "optimization_method": normalized_method,
                     "arguments": param_names,
                 }
             except Exception as exc:  # noqa: BLE001
@@ -133,11 +152,176 @@ class ModelSolver:
                     "optimal_params": [np.nan] * len(param_names),
                     "covariance": None,
                     "errors": [np.nan] * len(param_names),
-                    "LSS": np.nan,
+                    "score": np.nan,
+                    "optimization_method": normalized_method,
                     "arguments": param_names,
                     "exception": exc,
                 }
         return results
+
+    # -------------------------------------------------------------------------
+    def solve_model(
+        self,
+        method: str,
+        model: Callable[..., np.ndarray],
+        pressure: np.ndarray,
+        uptake: np.ndarray,
+        initial: list[float],
+        lower: list[float],
+        upper: list[float],
+        evaluations: int,
+    ) -> tuple[np.ndarray, np.ndarray | None, np.ndarray | None, np.ndarray]:
+        normalized_method = self.normalize_method(method)
+        if normalized_method == "LSS":
+            return self.solve_with_curve_fit(
+                model,
+                pressure,
+                uptake,
+                initial,
+                lower,
+                upper,
+                evaluations,
+            )
+        return self.solve_with_minimize(
+            normalized_method,
+            model,
+            pressure,
+            uptake,
+            initial,
+            lower,
+            upper,
+            evaluations,
+        )
+
+    # -------------------------------------------------------------------------
+    def solve_with_curve_fit(
+        self,
+        model: Callable[..., np.ndarray],
+        pressure: np.ndarray,
+        uptake: np.ndarray,
+        initial: list[float],
+        lower: list[float],
+        upper: list[float],
+        evaluations: int,
+    ) -> tuple[np.ndarray, np.ndarray | None, np.ndarray | None, np.ndarray]:
+        optimal_params, covariance = curve_fit(
+            model,
+            pressure,
+            uptake,
+            p0=initial,
+            bounds=(lower, upper),
+            maxfev=evaluations,
+            check_finite=True,
+            absolute_sigma=False,
+        )
+        optimal_array = np.asarray(optimal_params, dtype=np.float64)
+        covariance_array = (
+            np.asarray(covariance, dtype=np.float64) if covariance is not None else None
+        )
+        predicted = model(pressure, *optimal_array)
+        errors = (
+            np.sqrt(np.diag(covariance_array)).astype(float)
+            if covariance_array is not None
+            else None
+        )
+        return optimal_array, covariance_array, errors, predicted
+
+    # -------------------------------------------------------------------------
+    def solve_with_minimize(
+        self,
+        method: str,
+        model: Callable[..., np.ndarray],
+        pressure: np.ndarray,
+        uptake: np.ndarray,
+        initial: list[float],
+        lower: list[float],
+        upper: list[float],
+        evaluations: int,
+    ) -> tuple[np.ndarray, np.ndarray | None, np.ndarray | None, np.ndarray]:
+        lower_bounds = np.asarray(lower, dtype=np.float64)
+        upper_bounds = np.asarray(upper, dtype=np.float64)
+        initial_guess = np.asarray(initial, dtype=np.float64)
+        clipped_initial = np.clip(initial_guess, lower_bounds, upper_bounds)
+
+        def project(params: np.ndarray) -> np.ndarray:
+            return np.clip(params, lower_bounds, upper_bounds)
+
+        residual_scale = float(np.sum(uptake * uptake, dtype=np.float64))
+        penalty = max(1.0, residual_scale) * 1e6
+
+        def objective(params: np.ndarray) -> float:
+            projected = project(params)
+            with np.errstate(all="ignore"):
+                predicted = model(pressure, *projected)
+            if not np.all(np.isfinite(predicted)):
+                return penalty
+            residuals = uptake - predicted
+            if not np.all(np.isfinite(residuals)):
+                return penalty
+            return float(np.sum(residuals * residuals, dtype=np.float64))
+
+        bounds = None
+        if method in BOUNDS_COMPATIBLE_METHODS:
+            bounds = list(zip(lower_bounds, upper_bounds))
+
+        options = {"maxiter": evaluations}
+        evaluations_per_param = evaluations * max(1, len(initial_guess))
+        if method == "L-BFGS-B":
+            options["maxfun"] = evaluations_per_param
+        if method in {"Powell", "Nelder-Mead"}:
+            options["maxfev"] = evaluations_per_param
+
+        result = minimize(
+            objective,
+            clipped_initial,
+            method=method,
+            bounds=bounds,
+            options=options,
+        )
+        if not result.success:
+            logger.warning(
+                "%s optimization did not converge: %s", method, result.message
+            )
+
+        optimal = np.asarray(result.x, dtype=np.float64)
+        optimal = project(optimal)
+        with np.errstate(all="ignore"):
+            predicted = model(pressure, *optimal)
+        if not np.all(np.isfinite(predicted)):
+            predicted = np.full_like(pressure, np.nan, dtype=np.float64)
+        covariance = self.extract_covariance_matrix(result)
+        errors = (
+            np.sqrt(np.diag(covariance)).astype(float)
+            if covariance is not None
+            else None
+        )
+        return optimal, covariance, errors, predicted
+
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def normalize_method(method: str) -> str:
+        normalized = method.replace("_", "-").strip().upper()
+        for candidate in SUPPORTED_OPTIMIZATION_METHODS:
+            if candidate.upper() == normalized:
+                return candidate
+        return DEFAULT_OPTIMIZATION_METHOD
+
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def extract_covariance_matrix(result: Any) -> np.ndarray | None:
+        hessian_inverse = getattr(result, "hess_inv", None)
+        if hessian_inverse is None:
+            return None
+        matrix = hessian_inverse
+        if hasattr(matrix, "todense"):
+            matrix = matrix.todense()
+        try:
+            covariance = np.asarray(matrix, dtype=np.float64)
+        except Exception:  # noqa: BLE001
+            return None
+        if covariance.ndim != 2:
+            return None
+        return covariance
 
     # -------------------------------------------------------------------------
     def bulk_data_fitting(
@@ -147,6 +331,7 @@ class ModelSolver:
         pressure_col: str,
         uptake_col: str,
         max_iterations: int,
+        optimization_method: str,
         progress_callback: Callable[[int, int], None] | None = None,
     ) -> dict[str, list[dict[str, Any]]]:
         """Iterate over the dataset and fit every experiment with the configured models."""
@@ -154,6 +339,7 @@ class ModelSolver:
             model: [] for model in configuration.keys()
         }
         total_experiments = dataset.shape[0]
+        normalized_method = self.normalize_method(optimization_method)
         for index, row in dataset.iterrows():
             pressure = np.asarray(row[pressure_col], dtype=np.float64)
             uptake = np.asarray(row[uptake_col], dtype=np.float64)
@@ -164,6 +350,7 @@ class ModelSolver:
                 experiment_name,
                 configuration,
                 max_iterations,
+                normalized_method,
             )
             for model_name, data in experiment_results.items():
                 results[model_name].append(data)
@@ -187,6 +374,7 @@ class FittingPipeline:
         dataset_payload: dict[str, Any],
         configuration: dict[str, dict[str, dict[str, float]]],
         max_iterations: int,
+        optimization_method: str,
         save_best: bool,
         progress_callback: Callable[[int, int], None] | None = None,
     ) -> dict[str, Any]:
@@ -220,6 +408,7 @@ class FittingPipeline:
             detected_columns.pressure,
             detected_columns.uptake,
             max_iterations,
+            optimization_method,
             progress_callback=progress_callback,
         )
 
@@ -245,6 +434,7 @@ class FittingPipeline:
         summary_lines = [
             "[INFO] ADSORFIT fitting completed.",
             f"Experiments processed: {experiment_count}",
+            f"Optimization method: {self.solver.normalize_method(optimization_method)}",
         ]
         if save_best:
             summary_lines.append("Best model selection stored in database.")
@@ -346,7 +536,7 @@ class FittingPipeline:
     # -------------------------------------------------------------------------
     def build_preview(self, dataset: pd.DataFrame) -> list[dict[str, Any]]:
         preview_columns = [
-            column for column in dataset.columns if column.endswith("LSS")
+            column for column in dataset.columns if column.endswith("score")
         ]
         preview_columns.extend(
             [
@@ -386,5 +576,3 @@ class FittingPipeline:
             for parameter, value in overrides.items():
                 backend_param = alias_map.get(parameter, parameter)
                 target[bound_type][backend_param] = float(value)
-
-    

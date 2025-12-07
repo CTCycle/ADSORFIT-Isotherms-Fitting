@@ -17,9 +17,10 @@ pipeline = FittingPipeline()
 @router.post("/run", response_model=FittingResponse, status_code=status.HTTP_200_OK)
 async def run_fitting_job(payload: FittingRequest) -> Any:
     logger.info(
-        "Received fitting request: iterations=%s, save_best=%s",
+        "Received fitting request: iterations=%s, save_best=%s, method=%s",
         payload.max_iterations,
         payload.save_best,
+        payload.optimization_method,
     )
 
     try:
@@ -31,6 +32,7 @@ async def run_fitting_job(payload: FittingRequest) -> Any:
                 for name, config in payload.parameter_bounds.items()
             },
             payload.max_iterations,
+            payload.optimization_method,
             payload.save_best,
         )
     except ValueError as exc:

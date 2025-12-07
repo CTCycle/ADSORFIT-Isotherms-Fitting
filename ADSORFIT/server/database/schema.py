@@ -67,7 +67,8 @@ class AdsorptionLangmuirResults(Base):
     experiment_id = Column(
         Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
     )
-    lss = Column("LSS", Float)
+    optimization_method = Column("optimization method", String)
+    score = Column("score", Float)
     k = Column("k", Float)
     k_error = Column("k error", Float)
     qsat = Column("qsat", Float)
@@ -85,7 +86,8 @@ class AdsorptionSipsResults(Base):
     experiment_id = Column(
         Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
     )
-    lss = Column("LSS", Float)
+    optimization_method = Column("optimization method", String)
+    score = Column("score", Float)
     k = Column("k", Float)
     k_error = Column("k error", Float)
     qsat = Column("qsat", Float)
@@ -105,7 +107,8 @@ class AdsorptionFreundlichResults(Base):
     experiment_id = Column(
         Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
     )
-    lss = Column("LSS", Float)
+    optimization_method = Column("optimization method", String)
+    score = Column("score", Float)
     k = Column("k", Float)
     k_error = Column("k error", Float)
     exponent = Column("exponent", Float)
@@ -123,7 +126,8 @@ class AdsorptionTemkinResults(Base):
     experiment_id = Column(
         Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
     )
-    lss = Column("LSS", Float)
+    optimization_method = Column("optimization method", String)
+    score = Column("score", Float)
     k = Column("k", Float)
     k_error = Column("k error", Float)
     beta = Column("beta", Float)
@@ -141,7 +145,8 @@ class AdsorptionTothResults(Base):
     experiment_id = Column(
         Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
     )
-    lss = Column("LSS", Float)
+    optimization_method = Column("optimization method", String)
+    score = Column("score", Float)
     k = Column("k", Float)
     k_error = Column("k error", Float)
     qsat = Column("qsat", Float)
@@ -161,7 +166,8 @@ class AdsorptionDubininRadushkevichResults(Base):
     experiment_id = Column(
         Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
     )
-    lss = Column("LSS", Float)
+    optimization_method = Column("optimization method", String)
+    score = Column("score", Float)
     qsat = Column("qsat", Float)
     qsat_error = Column("qsat error", Float)
     beta = Column("beta", Float)
@@ -179,7 +185,8 @@ class AdsorptionDualSiteLangmuirResults(Base):
     experiment_id = Column(
         Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
     )
-    lss = Column("LSS", Float)
+    optimization_method = Column("optimization method", String)
+    score = Column("score", Float)
     k1 = Column("k1", Float)
     k1_error = Column("k1 error", Float)
     qsat1 = Column("qsat1", Float)
@@ -201,7 +208,8 @@ class AdsorptionRedlichPetersonResults(Base):
     experiment_id = Column(
         Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
     )
-    lss = Column("LSS", Float)
+    optimization_method = Column("optimization method", String)
+    score = Column("score", Float)
     k = Column("k", Float)
     k_error = Column("k error", Float)
     a = Column("a", Float)
@@ -221,7 +229,8 @@ class AdsorptionJovanovicResults(Base):
     experiment_id = Column(
         Integer, ForeignKey("ADSORPTION_EXPERIMENT.id"), nullable=False
     )
-    lss = Column("LSS", Float)
+    optimization_method = Column("optimization method", String)
+    score = Column("score", Float)
     k = Column("k", Float)
     k_error = Column("k error", Float)
     qsat = Column("qsat", Float)

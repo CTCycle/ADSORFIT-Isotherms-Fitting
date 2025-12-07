@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -22,6 +22,13 @@ class ModelParameterConfig(BaseModel):
 class FittingRequest(BaseModel):
     max_iterations: int = Field(..., ge=1)
     save_best: bool = False
+    optimization_method: Literal[
+        "LSS",
+        "BFGS",
+        "L-BFGS-B",
+        "Nelder-Mead",
+        "Powell",
+    ] = Field(default="LSS")
     parameter_bounds: dict[str, ModelParameterConfig]
     dataset: DatasetPayload
 

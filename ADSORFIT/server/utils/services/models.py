@@ -44,12 +44,20 @@ class AdsorptionModels:
     # -------------------------------------------------------------------------
     @staticmethod
     def freundlich(pressure: np.ndarray, k: float, exponent: float) -> np.ndarray:
-        return (pressure * k) ** (1 / exponent)
+        p = np.asarray(pressure, dtype=np.float64)
+        safe_k = float(np.clip(k, 1e-12, None))
+        safe_exponent = float(np.clip(exponent, 1e-12, None))
+        base = np.clip(p * safe_k, 1e-12, None)
+        return np.power(base, 1.0 / safe_exponent)
 
     # -------------------------------------------------------------------------
     @staticmethod
     def temkin(pressure: np.ndarray, k: float, beta: float) -> np.ndarray:
-        return beta * np.log(k * pressure)
+        p = np.asarray(pressure, dtype=np.float64)
+        safe_k = float(np.clip(k, 1e-12, None))
+        safe_beta = float(np.clip(beta, 1e-12, None))
+        argument = np.clip(p * safe_k, 1e-12, None)
+        return safe_beta * np.log(argument)
 
     # -------------------------------------------------------------------------
     @staticmethod
