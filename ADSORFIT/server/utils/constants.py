@@ -96,3 +96,12 @@ FITTING_MODEL_NAMES = (
     "REDLICH_PETERSON",
     "JOVANOVIC",
 )
+
+
+###############################################################################
+DATASETS_ROUTER_PREFIX = "/datasets"
+DATASETS_LOAD_ENDPOINT = "/load"
+FITTING_ROUTER_PREFIX = "/fitting"
+FITTING_RUN_ENDPOINT = "/run"
+ROOT_ENDPOINT = "/"
+DOCS_ENDPOINT = "/docs"

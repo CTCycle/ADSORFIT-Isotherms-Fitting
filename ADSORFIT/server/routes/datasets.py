@@ -3,16 +3,22 @@ from __future__ import annotations
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from ADSORFIT.server.schemas.datasets import DatasetLoadResponse
+from ADSORFIT.server.utils.constants import (
+    DATASETS_LOAD_ENDPOINT,
+    DATASETS_ROUTER_PREFIX,
+)
 from ADSORFIT.server.utils.logger import logger
 from ADSORFIT.server.utils.services.datasets import DatasetService
 
-router = APIRouter(prefix="/datasets", tags=["load"])
+router = APIRouter(prefix=DATASETS_ROUTER_PREFIX, tags=["load"])
 dataset_service = DatasetService()
 
 
 ###############################################################################
 @router.post(
-    "/load", response_model=DatasetLoadResponse, status_code=status.HTTP_200_OK
+    DATASETS_LOAD_ENDPOINT,
+    response_model=DatasetLoadResponse,
+    status_code=status.HTTP_200_OK,
 )
 async def load_dataset(file: UploadFile = File(...)) -> DatasetLoadResponse:
     try:

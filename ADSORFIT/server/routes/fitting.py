@@ -6,15 +6,23 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, status
 
 from ADSORFIT.server.schemas.fitting import FittingRequest, FittingResponse
+from ADSORFIT.server.utils.constants import (
+    FITTING_ROUTER_PREFIX,
+    FITTING_RUN_ENDPOINT,
+)
 from ADSORFIT.server.utils.logger import logger
 from ADSORFIT.server.utils.services.fitting import FittingPipeline
 
-router = APIRouter(prefix="/fitting", tags=["fitting"])
+router = APIRouter(prefix=FITTING_ROUTER_PREFIX, tags=["fitting"])
 pipeline = FittingPipeline()
 
 
 ###############################################################################
-@router.post("/run", response_model=FittingResponse, status_code=status.HTTP_200_OK)
+@router.post(
+    FITTING_RUN_ENDPOINT,
+    response_model=FittingResponse,
+    status_code=status.HTTP_200_OK,
+)
 async def run_fitting_job(payload: FittingRequest) -> Any:
     logger.info(
         "Received fitting request: iterations=%s, method=%s",
