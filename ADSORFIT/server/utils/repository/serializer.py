@@ -33,6 +33,8 @@ class DataSerializer:
                 "k_error": "k error",
                 "qsat": "qsat",
                 "qsat_error": "qsat error",
+                "aic": "AIC",
+                "aicc": "AICc",
             },
         },
         "SIPS": {
@@ -47,6 +49,8 @@ class DataSerializer:
                 "qsat_error": "qsat error",
                 "exponent": "exponent",
                 "exponent_error": "exponent error",
+                "aic": "AIC",
+                "aicc": "AICc",
             },
         },
         "FREUNDLICH": {
@@ -59,6 +63,8 @@ class DataSerializer:
                 "k_error": "k error",
                 "exponent": "exponent",
                 "exponent_error": "exponent error",
+                "aic": "AIC",
+                "aicc": "AICc",
             },
         },
         "TEMKIN": {
@@ -71,6 +77,8 @@ class DataSerializer:
                 "k_error": "k error",
                 "beta": "beta",
                 "beta_error": "beta error",
+                "aic": "AIC",
+                "aicc": "AICc",
             },
         },
         "TOTH": {
@@ -85,6 +93,8 @@ class DataSerializer:
                 "qsat_error": "qsat error",
                 "exponent": "exponent",
                 "exponent_error": "exponent error",
+                "aic": "AIC",
+                "aicc": "AICc",
             },
         },
         "DUBININ_RADUSHKEVICH": {
@@ -97,6 +107,8 @@ class DataSerializer:
                 "qsat_error": "qsat error",
                 "beta": "beta",
                 "beta_error": "beta error",
+                "aic": "AIC",
+                "aicc": "AICc",
             },
         },
         "DUAL_SITE_LANGMUIR": {
@@ -113,6 +125,8 @@ class DataSerializer:
                 "k2_error": "k2 error",
                 "qsat2": "qsat2",
                 "qsat2_error": "qsat2 error",
+                "aic": "AIC",
+                "aicc": "AICc",
             },
         },
         "REDLICH_PETERSON": {
@@ -127,6 +141,8 @@ class DataSerializer:
                 "a_error": "a error",
                 "beta": "beta",
                 "beta_error": "beta error",
+                "aic": "AIC",
+                "aicc": "AICc",
             },
         },
         "JOVANOVIC": {
@@ -139,6 +155,8 @@ class DataSerializer:
                 "k_error": "k error",
                 "qsat": "qsat",
                 "qsat_error": "qsat error",
+                "aic": "AIC",
+                "aicc": "AICc",
             },
         },
     }

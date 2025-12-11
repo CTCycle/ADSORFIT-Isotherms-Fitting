@@ -59,6 +59,28 @@ class ModelSolver:
         self.collection = AdsorptionModels()
 
     # -------------------------------------------------------------------------
+    @staticmethod
+    def compute_information_metrics(
+        score: float,
+        sample_size: int,
+        parameter_count: int,
+    ) -> tuple[float, float]:
+        valid_aic = (
+            parameter_count > 0 and sample_size > 0 and np.isfinite(score) and score > 0
+        )
+        if not valid_aic:
+            return (np.nan, np.nan)
+        ratio = score / sample_size
+        aic = float(sample_size * np.log(ratio) + 2 * parameter_count)
+        correction_denominator = sample_size - parameter_count - 1
+        if correction_denominator <= 0:
+            return (aic, np.nan)
+        aicc = float(
+            aic + (2 * parameter_count * (parameter_count + 1)) / correction_denominator
+        )
+        return (aic, aicc)
+
+    # -------------------------------------------------------------------------
     def single_experiment_fit(
         self,
         pressure: np.ndarray,
@@ -85,6 +107,7 @@ class ModelSolver:
         results: dict[str, dict[str, Any]] = {}
         evaluations = max(1, int(max_iterations))
         fitting_settings = server_settings.fitting
+        sample_size = int(uptake.shape[0])
         normalized_method = self.normalize_method(optimization_method)
         for model_name, model_config in configuration.items():
             model = self.collection.get_model(model_name)
@@ -134,13 +157,23 @@ class ModelSolver:
                 else:
                     error_list = list(error_list)
                 score = float(np.sum((uptake - predicted) ** 2, dtype=np.float64))
+                parameter_count = len(param_names)
+                aic, aicc = self.compute_information_metrics(
+                    score,
+                    sample_size,
+                    parameter_count,
+                )
                 results[model_name] = {
                     "optimal_params": optimal_list,
                     "covariance": covariance_list,
                     "errors": error_list,
                     "score": score,
+                    "aic": aic,
+                    "aicc": aicc,
                     "optimization_method": normalized_method,
                     "arguments": param_names,
+                    "measurement_count": sample_size,
+                    "parameter_count": parameter_count,
                 }
             except Exception as exc:  # noqa: BLE001
                 logger.exception(
@@ -153,8 +186,12 @@ class ModelSolver:
                     "covariance": None,
                     "errors": [np.nan] * len(param_names),
                     "score": np.nan,
+                    "aic": np.nan,
+                    "aicc": np.nan,
                     "optimization_method": normalized_method,
                     "arguments": param_names,
+                    "measurement_count": sample_size,
+                    "parameter_count": len(param_names),
                     "exception": exc,
                 }
         return results
@@ -532,7 +569,11 @@ class FittingPipeline:
     # -------------------------------------------------------------------------
     def build_preview(self, dataset: pd.DataFrame) -> list[dict[str, Any]]:
         preview_columns = [
-            column for column in dataset.columns if column.endswith("score")
+            column
+            for column in dataset.columns
+            if column.endswith("score")
+            or column.endswith("AIC")
+            or column.endswith("AICc")
         ]
         preview_columns.extend(
             [

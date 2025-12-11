@@ -208,6 +208,12 @@ class DatasetAdapter:
             result_df[f"{model_name} score"] = [
                 entry.get("score", np.nan) for entry in entries
             ]
+            result_df[f"{model_name} AIC"] = [
+                entry.get("aic", np.nan) for entry in entries
+            ]
+            result_df[f"{model_name} AICc"] = [
+                entry.get("aicc", np.nan) for entry in entries
+            ]
             result_df[f"{model_name} optimization method"] = [
                 entry.get("optimization_method") for entry in entries
             ]
