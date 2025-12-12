@@ -7,7 +7,7 @@ export default defineConfig({
     server: {
         host: '127.0.0.1',
         port: 7861,
-        strictPort: true,
+        strictPort: false,
         proxy: {
             '/api': {
                 target: 'http://127.0.0.1:8000',
@@ -19,7 +19,7 @@ export default defineConfig({
     preview: {
         host: '127.0.0.1',
         port: 7861,
-        strictPort: true,
+        strictPort: false,
         proxy: {
             '/api': {
                 target: 'http://127.0.0.1:8000',
