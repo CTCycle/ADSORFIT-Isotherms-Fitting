@@ -17,7 +17,7 @@ class DatasetService:
             server_settings.datasets.allowed_extensions
         )
 
-    # -------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def load_from_bytes(
         self, payload: bytes, filename: str | None
     ) -> tuple[dict[str, Any], str]:
@@ -44,7 +44,7 @@ class DatasetService:
         summary = self.format_dataset_summary(dataframe)
         return dataset_payload, summary
 
-    # -------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def read_dataframe(self, payload: bytes, filename: str | None) -> pd.DataFrame:
         """Decode the uploaded file into a Pandas DataFrame, handling CSV and Excel inputs.
 
@@ -92,7 +92,7 @@ class DatasetService:
 
         return dataframe
 
-    # -------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def format_dataset_summary(self, dataframe: pd.DataFrame) -> str:
         """Produce a textual overview of the dataset dimensions and missing values.
 

@@ -20,6 +20,7 @@ app = FastAPI(
 app.include_router(dataset_router)
 app.include_router(fit_router)
 
+# -------------------------------------------------------------------------
 @app.get(ROOT_ENDPOINT)
 def redirect_to_docs() -> RedirectResponse:
     return RedirectResponse(url=DOCS_ENDPOINT)

@@ -27,7 +27,7 @@ class FastAPISettings:
     description: str
     version: str
 
-# -----------------------------------------------------------------------------
+###############################################################################
 @dataclass(frozen=True)
 class DatabaseSettings:
     embedded_database: bool
@@ -42,13 +42,13 @@ class DatabaseSettings:
     connect_timeout: int
     insert_batch_size: int
 
-# -----------------------------------------------------------------------------
+###############################################################################
 @dataclass(frozen=True)
 class DatasetSettings:
     allowed_extensions: tuple[str, ...]
     column_detection_cutoff: float
 
-# -----------------------------------------------------------------------------
+###############################################################################
 @dataclass(frozen=True)
 class FittingSettings:
     default_max_iterations: int
@@ -58,7 +58,7 @@ class FittingSettings:
     parameter_max_default: float
     preview_row_limit: int
 
-# -----------------------------------------------------------------------------
+###############################################################################
 @dataclass(frozen=True)
 class ServerSettings:
     fastapi: FastAPISettings
@@ -69,6 +69,7 @@ class ServerSettings:
 
 # [BUILDER FUNCTIONS]
 ###############################################################################
+# -------------------------------------------------------------------------
 def build_fastapi_settings(payload: dict[str, Any] | Any) -> FastAPISettings:
     title_value = env_variables.get("FASTAPI_TITLE") or payload.get("title")
     desc_value = env_variables.get("FASTAPI_DESCRIPTION") or payload.get("description")
@@ -80,7 +81,7 @@ def build_fastapi_settings(payload: dict[str, Any] | Any) -> FastAPISettings:
         version=coerce_str(version_value, "0.1.0"),
     )
 
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 def build_database_settings(payload: dict[str, Any] | Any) -> DatabaseSettings:
     embedded_value = payload.get("embedded_database")
     embedded = coerce_bool(embedded_value, True)
@@ -136,7 +137,7 @@ def build_database_settings(payload: dict[str, Any] | Any) -> DatabaseSettings:
         insert_batch_size=coerce_int(insert_batch_value, 1000, minimum=1),
     )
 
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 def build_dataset_settings(payload: dict[str, Any] | Any) -> DatasetSettings:
     return DatasetSettings(
         allowed_extensions=coerce_str_sequence(
@@ -147,7 +148,7 @@ def build_dataset_settings(payload: dict[str, Any] | Any) -> DatasetSettings:
         ),
     )
 
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 def build_fitting_settings(payload: dict[str, Any] | Any) -> FittingSettings:
     default_iterations = coerce_int(
         payload.get("default_max_iterations"), 1000, minimum=1
@@ -173,7 +174,7 @@ def build_fitting_settings(payload: dict[str, Any] | Any) -> FittingSettings:
         preview_row_limit=coerce_int(payload.get("preview_row_limit"), 5, minimum=1),
     )
 
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 def build_server_settings(payload: dict[str, Any] | Any) -> ServerSettings:
     fastapi_payload = ensure_mapping(payload.get("fastapi"))
     database_payload = ensure_mapping(payload.get("database"))
@@ -190,6 +191,7 @@ def build_server_settings(payload: dict[str, Any] | Any) -> ServerSettings:
 
 # [SERVER CONFIGURATION LOADER]
 ###############################################################################
+# -------------------------------------------------------------------------
 def get_server_settings(config_path: str | None = None) -> ServerSettings:
     path = config_path or SERVER_CONFIGURATION_FILE
     payload = load_configurations(path)

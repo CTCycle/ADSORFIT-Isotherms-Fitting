@@ -8,7 +8,7 @@ from ADSORFIT.server.utils.constants import SERVER_CONFIGURATION_FILE
 from ADSORFIT.server.utils.logger import logger
 
 
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 def load_database_config() -> dict[str, object]:
     try:
         with open(SERVER_CONFIGURATION_FILE, "r", encoding="utf-8") as file:

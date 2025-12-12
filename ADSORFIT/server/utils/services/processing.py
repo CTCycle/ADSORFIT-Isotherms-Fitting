@@ -178,6 +178,7 @@ class AdsorptionDataProcessor:
 
 ###############################################################################
 class DatasetAdapter:
+    # -------------------------------------------------------------------------
     @staticmethod
     def combine_results(
         fitting_results: dict[str, list[dict[str, Any]]],

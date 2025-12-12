@@ -104,7 +104,7 @@ class SQLiteRepository:
         table_cls = self.get_table_class(table_name)
         self.upsert_dataframe(df, table_cls)
 
-    # -----------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def count_rows(self, table_name: str) -> int:
         with self.engine.connect() as conn:
             result = conn.execute(
