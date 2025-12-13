@@ -9,6 +9,7 @@ interface ModelState {
 }
 
 interface ModelsPageProps {
+    modelStates: Record<string, ModelState>;
     onParametersChange: (modelName: string, parameters: ModelParameters) => void;
     onToggle: (modelName: string, enabled: boolean) => void;
 }
@@ -18,32 +19,20 @@ interface ModelsPageProps {
  * 
  * State management:
  * - expandedId: Single expanded card strategy - only one card can be expanded at a time.
- * - modelStates: Configuration and enabled state per model, persists across expand/collapse.
+ * - modelStates: Received from parent App component to persist across page navigation.
  * 
  * Data flow:
  * - Loads ADSORPTION_MODELS array for model metadata.
- * - Maintains configurations that survive expand/collapse events.
+ * - Receives model configurations from parent to survive page switches.
  * - Passes state down to ModelCard components.
  */
 export const ModelsPage: React.FC<ModelsPageProps> = ({
+    modelStates,
     onParametersChange,
     onToggle,
 }) => {
     // Single expanded card strategy: only one card can be expanded at a time
     const [expandedId, setExpandedId] = useState<string | null>(null);
-
-    // Configuration state per model - persists across expand/collapse
-    const [modelStates, setModelStates] = useState<Record<string, ModelState>>(() => {
-        const initial: Record<string, ModelState> = {};
-        ADSORPTION_MODELS.forEach((model) => {
-            const config: ModelParameters = {};
-            Object.entries(model.parameterDefaults).forEach(([name, [min, max]]) => {
-                config[name] = { min, max };
-            });
-            initial[model.name] = { enabled: true, config };
-        });
-        return initial;
-    });
 
     // Handle card expand/collapse toggle
     const handleCardToggle = useCallback((modelId: string) => {
@@ -53,10 +42,6 @@ export const ModelsPage: React.FC<ModelsPageProps> = ({
     // Handle model enabled/disabled toggle
     const handleEnabledChange = useCallback(
         (modelName: string, enabled: boolean) => {
-            setModelStates((prev) => ({
-                ...prev,
-                [modelName]: { ...prev[modelName], enabled },
-            }));
             onToggle(modelName, enabled);
         },
         [onToggle]
@@ -65,10 +50,6 @@ export const ModelsPage: React.FC<ModelsPageProps> = ({
     // Handle configuration change
     const handleConfigChange = useCallback(
         (modelName: string, config: ModelParameters) => {
-            setModelStates((prev) => ({
-                ...prev,
-                [modelName]: { ...prev[modelName], config },
-            }));
             onParametersChange(modelName, config);
         },
         [onParametersChange]

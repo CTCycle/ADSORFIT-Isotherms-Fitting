@@ -3,23 +3,25 @@ import { Sidebar } from './components/Sidebar';
 import { ConfigPage } from './components/ConfigPage';
 import { ModelsPage } from './components/ModelsPage';
 import { MetricsPage } from './components/MetricsPage';
-import { DatabaseBrowserPage } from './components/DatabaseBrowserPage';
-import { MODEL_PARAMETER_DEFAULTS } from './constants';
+import { DatabaseBrowserPage, initialDatabaseBrowserState } from './components/DatabaseBrowserPage';
+import type { DatabaseBrowserState } from './components/DatabaseBrowserPage';
+import { ADSORPTION_MODELS } from './adsorptionModels';
 import { loadDataset, startFitting } from './services';
-import type { DatasetPayload, ModelParameters, ModelConfiguration } from './types';
+import type { DatasetPayload, FittingPayload, ModelParameters, ModelConfiguration } from './types';
 import './index.css';
 
 interface ModelState {
     enabled: boolean;
-    parameters: ModelParameters;
+    config: ModelParameters;
 }
 
 type PageType = 'config' | 'models' | 'metrics' | 'browser';
+type OptimizationMethod = FittingPayload['optimization_method'];
 
 function App() {
     const [currentPage, setCurrentPage] = useState<PageType>('config');
     const [maxIterations, setMaxIterations] = useState(10000);
-    const [optimizationMethod, setOptimizationMethod] = useState('LSS');
+    const [optimizationMethod, setOptimizationMethod] = useState<OptimizationMethod>('LSS');
     const [datasetStats, setDatasetStats] = useState('No dataset loaded.');
     const [fittingStatus, setFittingStatus] = useState('');
     const [dataset, setDataset] = useState<DatasetPayload | null>(null);
@@ -27,15 +29,18 @@ function App() {
     const [datasetSamples, setDatasetSamples] = useState(0);
     const [modelStates, setModelStates] = useState<Record<string, ModelState>>(() => {
         const initial: Record<string, ModelState> = {};
-        Object.entries(MODEL_PARAMETER_DEFAULTS).forEach(([modelName, params]) => {
-            const parameters: ModelParameters = {};
-            Object.entries(params).forEach(([paramName, [min, max]]) => {
-                parameters[paramName] = { min, max };
+        ADSORPTION_MODELS.forEach((model) => {
+            const config: ModelParameters = {};
+            Object.entries(model.parameterDefaults).forEach(([paramName, [min, max]]) => {
+                config[paramName] = { min, max };
             });
-            initial[modelName] = { enabled: true, parameters };
+            initial[model.name] = { enabled: true, config };
         });
         return initial;
     });
+
+    // Database browser state - lifted for persistence across page navigation
+    const [databaseBrowserState, setDatabaseBrowserState] = useState<DatabaseBrowserState>(initialDatabaseBrowserState);
 
     const handleModelToggle = useCallback((modelName: string, enabled: boolean) => {
         setModelStates((prev) => ({
@@ -44,10 +49,10 @@ function App() {
         }));
     }, []);
 
-    const handleParametersChange = useCallback((modelName: string, parameters: ModelParameters) => {
+    const handleParametersChange = useCallback((modelName: string, config: ModelParameters) => {
         setModelStates((prev) => ({
             ...prev,
-            [modelName]: { ...prev[modelName], parameters },
+            [modelName]: { ...prev[modelName], config },
         }));
     }, []);
 
@@ -91,13 +96,13 @@ function App() {
         const parameterBounds: Record<string, ModelConfiguration> = {};
         selectedModels.forEach((modelName) => {
             const state = modelStates[modelName];
-            const config: ModelConfiguration = {
+            const modelConfig: ModelConfiguration = {
                 min: {},
                 max: {},
                 initial: {},
             };
 
-            Object.entries(state.parameters).forEach(([paramName, bounds]) => {
+            Object.entries(state.config).forEach(([paramName, bounds]) => {
                 let { min, max } = bounds;
 
                 // Validate and swap if needed
@@ -106,17 +111,17 @@ function App() {
                 }
 
                 const midpoint = min + (max - min) / 2;
-                config.min[paramName] = min;
-                config.max[paramName] = max;
-                config.initial[paramName] = midpoint;
+                modelConfig.min[paramName] = min;
+                modelConfig.max[paramName] = max;
+                modelConfig.initial[paramName] = midpoint;
             });
 
-            parameterBounds[modelName] = config;
+            parameterBounds[modelName] = modelConfig;
         });
 
         setFittingStatus('[INFO] Starting fitting process...');
 
-        const payload = {
+        const payload: FittingPayload = {
             max_iterations: Math.max(1, Math.round(maxIterations)),
             optimization_method: optimizationMethod,
             parameter_bounds: parameterBounds,
@@ -127,7 +132,7 @@ function App() {
         setFittingStatus(result.message);
     }, [dataset, modelStates, maxIterations, optimizationMethod]);
 
-    const methodLabels: Record<string, string> = {
+    const methodLabels: Record<OptimizationMethod, string> = {
         LSS: 'Least Squares',
         BFGS: 'BFGS',
         'L-BFGS-B': 'L-BFGS-B',
@@ -135,7 +140,7 @@ function App() {
         Powell: 'Powell',
     };
 
-    const optimizationLabel = methodLabels[optimizationMethod] || optimizationMethod;
+    const optimizationLabel = methodLabels[optimizationMethod];
     const datasetLabel = datasetName || 'none';
 
     return (
@@ -174,6 +179,7 @@ function App() {
 
                     {currentPage === 'models' && (
                         <ModelsPage
+                            modelStates={modelStates}
                             onParametersChange={handleParametersChange}
                             onToggle={handleModelToggle}
                         />
@@ -181,7 +187,12 @@ function App() {
 
                     {currentPage === 'metrics' && <MetricsPage />}
 
-                    {currentPage === 'browser' && <DatabaseBrowserPage />}
+                    {currentPage === 'browser' && (
+                        <DatabaseBrowserPage
+                            state={databaseBrowserState}
+                            onStateChange={setDatabaseBrowserState}
+                        />
+                    )}
                 </main>
             </div>
         </div>

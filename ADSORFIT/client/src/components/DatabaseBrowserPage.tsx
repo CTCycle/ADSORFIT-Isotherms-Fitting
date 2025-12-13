@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { fetchTableList, fetchTableData } from '../services';
 
 interface TableInfo {
@@ -6,66 +6,111 @@ interface TableInfo {
     display_name: string;
 }
 
-export const DatabaseBrowserPage: React.FC = () => {
-    const [tables, setTables] = useState<TableInfo[]>([]);
-    const [selectedTable, setSelectedTable] = useState<string>('');
-    const [tableData, setTableData] = useState<Record<string, unknown>[]>([]);
-    const [columns, setColumns] = useState<string[]>([]);
-    const [rowCount, setRowCount] = useState(0);
-    const [columnCount, setColumnCount] = useState(0);
-    const [displayName, setDisplayName] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+export interface DatabaseBrowserState {
+    tables: TableInfo[];
+    selectedTable: string;
+    tableData: Record<string, unknown>[];
+    columns: string[];
+    rowCount: number;
+    columnCount: number;
+    displayName: string;
+    loading: boolean;
+    error: string | null;
+    tablesLoaded: boolean;
+}
 
-    // Fetch table list on mount
+export const initialDatabaseBrowserState: DatabaseBrowserState = {
+    tables: [],
+    selectedTable: '',
+    tableData: [],
+    columns: [],
+    rowCount: 0,
+    columnCount: 0,
+    displayName: '',
+    loading: false,
+    error: null,
+    tablesLoaded: false,
+};
+
+interface DatabaseBrowserPageProps {
+    state: DatabaseBrowserState;
+    onStateChange: (state: DatabaseBrowserState) => void;
+}
+
+export const DatabaseBrowserPage: React.FC<DatabaseBrowserPageProps> = ({ state, onStateChange }) => {
+    const {
+        tables,
+        selectedTable,
+        tableData,
+        columns,
+        rowCount,
+        columnCount,
+        displayName,
+        loading,
+        error,
+        tablesLoaded,
+    } = state;
+
+    const updateState = useCallback((updates: Partial<DatabaseBrowserState>) => {
+        onStateChange({ ...state, ...updates });
+    }, [state, onStateChange]);
+
+    // Fetch table list on mount (only once)
     useEffect(() => {
+        if (tablesLoaded) return;
+
         const loadTables = async () => {
             const result = await fetchTableList();
             if (result.error) {
-                setError(result.error);
+                updateState({ error: result.error, tablesLoaded: true });
             } else {
-                setTables(result.tables);
-                if (result.tables.length > 0) {
-                    setSelectedTable(result.tables[0].table_name);
-                }
+                const firstTable = result.tables.length > 0 ? result.tables[0].table_name : '';
+                updateState({
+                    tables: result.tables,
+                    selectedTable: firstTable,
+                    tablesLoaded: true,
+                });
             }
         };
         loadTables();
-    }, []);
+    }, [tablesLoaded, updateState]);
 
-    // Fetch table data when selection changes
-    const loadTableData = useCallback(async () => {
-        if (!selectedTable) return;
+    // Fetch table data function
+    const loadTableData = useCallback(async (tableName?: string) => {
+        const tableToLoad = tableName || selectedTable;
+        if (!tableToLoad) return;
 
-        setLoading(true);
-        setError(null);
+        updateState({ loading: true, error: null });
 
-        const result = await fetchTableData(selectedTable);
+        const result = await fetchTableData(tableToLoad);
 
         if (result.error) {
-            setError(result.error);
-            setTableData([]);
-            setColumns([]);
-            setRowCount(0);
-            setColumnCount(0);
-            setDisplayName('');
+            updateState({
+                error: result.error,
+                tableData: [],
+                columns: [],
+                rowCount: 0,
+                columnCount: 0,
+                displayName: '',
+                loading: false,
+            });
         } else {
-            setTableData(result.data);
-            setColumns(result.columns);
-            setRowCount(result.rowCount);
-            setColumnCount(result.columnCount);
-            setDisplayName(result.displayName);
+            updateState({
+                tableData: result.data,
+                columns: result.columns,
+                rowCount: result.rowCount,
+                columnCount: result.columnCount,
+                displayName: result.displayName,
+                loading: false,
+            });
         }
+    }, [selectedTable, updateState]);
 
-        setLoading(false);
-    }, [selectedTable]);
-
-    useEffect(() => {
-        loadTableData();
-    }, [loadTableData]);
-
+    // Fetch data when table selection changes
     const handleTableChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedTable(e.target.value);
+        const newTable = e.target.value;
+        updateState({ selectedTable: newTable });
+        loadTableData(newTable);
     };
 
     const handleRefresh = () => {

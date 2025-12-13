@@ -1,11 +1,14 @@
 import React from 'react';
 import { NumberInput, FileUpload } from './UIComponents';
+import type { FittingPayload } from '../types';
+
+type OptimizationMethod = FittingPayload['optimization_method'];
 
 interface ConfigPageProps {
     maxIterations: number;
     onMaxIterationsChange: (value: number) => void;
-    optimizationMethod: string;
-    onOptimizationMethodChange: (value: string) => void;
+    optimizationMethod: OptimizationMethod;
+    onOptimizationMethodChange: (value: OptimizationMethod) => void;
     datasetStats: string;
     fittingStatus: string;
     datasetName: string | null;
@@ -59,7 +62,7 @@ export const ConfigPage: React.FC<ConfigPageProps> = ({
                             <label className="field-label">Optimization method</label>
                             <select
                                 value={optimizationMethod}
-                                onChange={(e) => onOptimizationMethodChange(e.target.value)}
+                                onChange={(e) => onOptimizationMethodChange(e.target.value as OptimizationMethod)}
                                 className="select-input"
                             >
                                 <option value="LSS">Least Squares (LSS)</option>
