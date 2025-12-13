@@ -54,6 +54,7 @@ Thumbs.db
 *.db
 *.sqlite*
 *.exe
+AGENTS.MD
 
 !.gitkeep
 !ADSORFIT/settings/server_configurations.json
