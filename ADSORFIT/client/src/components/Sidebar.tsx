@@ -14,9 +14,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange }) =
                 title="Configuration"
             >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <ellipse cx="12" cy="5" rx="9" ry="3" />
-                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                    <path d="M4 20C4 20 8 4 18 4" />
+                    <circle cx="6" cy="18" r="2" />
+                    <circle cx="12" cy="11" r="2" />
+                    <circle cx="18" cy="5" r="2" />
                 </svg>
             </button>
             <button
@@ -41,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange }) =
                 </svg>
             </button>
 
-            <div className="sidebar-spacer"></div>
+
 
             <button
                 className={`sidebar-icon ${currentPage === 'browser' ? 'active' : ''}`}
@@ -49,9 +50,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange }) =
                 title="Database Browser"
             >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                    <line x1="3" y1="9" x2="21" y2="9" />
-                    <line x1="9" y1="21" x2="9" y2="9" />
+                    <ellipse cx="12" cy="5" rx="9" ry="3" />
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
                 </svg>
             </button>
         </div>
