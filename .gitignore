@@ -49,6 +49,7 @@ lerna-debug.log*
 Thumbs.db
 
 # Misc
+*.lock
 *.log
 *.db
 *.sqlite*
