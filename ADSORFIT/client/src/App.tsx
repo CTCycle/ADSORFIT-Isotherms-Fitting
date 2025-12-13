@@ -3,6 +3,7 @@ import { Sidebar } from './components/Sidebar';
 import { ConfigPage } from './components/ConfigPage';
 import { ModelsPage } from './components/ModelsPage';
 import { MetricsPage } from './components/MetricsPage';
+import { DatabaseBrowserPage } from './components/DatabaseBrowserPage';
 import { MODEL_PARAMETER_DEFAULTS } from './constants';
 import { loadDataset, startFitting } from './services';
 import type { DatasetPayload, ModelParameters, ModelConfiguration } from './types';
@@ -13,7 +14,7 @@ interface ModelState {
     parameters: ModelParameters;
 }
 
-type PageType = 'config' | 'models' | 'metrics';
+type PageType = 'config' | 'models' | 'metrics' | 'browser';
 
 function App() {
     const [currentPage, setCurrentPage] = useState<PageType>('config');
@@ -179,6 +180,8 @@ function App() {
                     )}
 
                     {currentPage === 'metrics' && <MetricsPage />}
+
+                    {currentPage === 'browser' && <DatabaseBrowserPage />}
                 </main>
             </div>
         </div>

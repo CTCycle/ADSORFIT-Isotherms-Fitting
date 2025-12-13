@@ -8,6 +8,7 @@ from ADSORFIT.server.utils.variables import env_variables
 from ADSORFIT.server.utils.configurations import server_settings
 from ADSORFIT.server.routes.datasets import router as dataset_router
 from ADSORFIT.server.routes.fitting import router as fit_router
+from ADSORFIT.server.routes.browser import router as browser_router
 
 
 ###############################################################################
@@ -19,6 +20,7 @@ app = FastAPI(
 
 app.include_router(dataset_router)
 app.include_router(fit_router)
+app.include_router(browser_router)
 
 # -------------------------------------------------------------------------
 @app.get(ROOT_ENDPOINT)

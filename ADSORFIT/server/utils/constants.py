@@ -103,5 +103,23 @@ DATASETS_ROUTER_PREFIX = "/datasets"
 DATASETS_LOAD_ENDPOINT = "/load"
 FITTING_ROUTER_PREFIX = "/fitting"
 FITTING_RUN_ENDPOINT = "/run"
+BROWSER_ROUTER_PREFIX = "/browser"
+BROWSER_TABLES_ENDPOINT = "/tables"
+BROWSER_DATA_ENDPOINT = "/data"
 ROOT_ENDPOINT = "/"
 DOCS_ENDPOINT = "/docs"
+
+# Table name to friendly display name mapping for database browser
+BROWSER_TABLE_DISPLAY_NAMES: dict[str, str] = {
+    "ADSORPTION_DATA": "Uploaded Adsorption Data",
+    "ADSORPTION_LANGMUIR": "Langmuir Model Results",
+    "ADSORPTION_SIPS": "Sips Model Results",
+    "ADSORPTION_FREUNDLICH": "Freundlich Model Results",
+    "ADSORPTION_TEMKIN": "Temkin Model Results",
+    "ADSORPTION_TOTH": "Toth Model Results",
+    "ADSORPTION_DUBININ_RADUSHKEVICH": "Dubinin-Radushkevich Model Results",
+    "ADSORPTION_DUAL_SITE_LANGMUIR": "Dual-Site Langmuir Model Results",
+    "ADSORPTION_REDLICH_PETERSON": "Redlich-Peterson Model Results",
+    "ADSORPTION_JOVANOVIC": "Jovanovic Model Results",
+    "ADSORPTION_BEST_FIT": "Best Fit Results",
+}
