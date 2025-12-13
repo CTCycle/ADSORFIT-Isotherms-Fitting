@@ -57,6 +57,7 @@ class FittingSettings:
     parameter_min_default: float
     parameter_max_default: float
     preview_row_limit: int
+    best_model_metric: str
 
 ###############################################################################
 @dataclass(frozen=True)
@@ -165,6 +166,7 @@ def build_fitting_settings(payload: dict[str, Any] | Any) -> FittingSettings:
     parameter_max_default = coerce_float(
         payload.get("default_parameter_max"), 100.0, minimum=parameter_min_default
     )
+    best_model_metric = coerce_str(payload.get("best_model_metric"), "AICc")
     return FittingSettings(
         default_max_iterations=default_iterations,
         max_iterations_upper_bound=upper_bound,
@@ -172,6 +174,7 @@ def build_fitting_settings(payload: dict[str, Any] | Any) -> FittingSettings:
         parameter_min_default=parameter_min_default,
         parameter_max_default=parameter_max_default,
         preview_row_limit=coerce_int(payload.get("preview_row_limit"), 5, minimum=1),
+        best_model_metric=best_model_metric,
     )
 
 # -------------------------------------------------------------------------

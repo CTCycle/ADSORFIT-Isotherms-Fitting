@@ -65,18 +65,23 @@ class ModelSolver:
         sample_size: int,
         parameter_count: int,
     ) -> tuple[float, float]:
-        valid_aic = (
-            parameter_count > 0 and sample_size > 0 and np.isfinite(score) and score > 0
-        )
-        if not valid_aic:
-            return (np.nan, np.nan)
-        ratio = score / sample_size
-        aic = float(sample_size * np.log(ratio) + 2 * parameter_count)
+        valid_dimensions = parameter_count > 0 and sample_size > 0 and np.isfinite(score)
+        if not valid_dimensions:
+            return (np.inf, np.inf)
+
+        safe_score = max(float(score), float(np.finfo(np.float64).tiny))
+        ratio = safe_score / float(sample_size)
+        aic = float(sample_size * np.log(ratio) + sample_size + 2.0 * parameter_count)
+        if not np.isfinite(aic):
+            return (np.inf, np.inf)
+
         correction_denominator = sample_size - parameter_count - 1
         if correction_denominator <= 0:
-            return (aic, np.nan)
+            return (aic, np.inf)
+
         aicc = float(
-            aic + (2 * parameter_count * (parameter_count + 1)) / correction_denominator
+            aic + (2.0 * parameter_count * (parameter_count + 1.0))
+            / correction_denominator
         )
         return (aic, aicc)
 
@@ -451,7 +456,9 @@ class FittingPipeline:
         combined = self.adapter.combine_results(results, processed)
         self.serializer.save_fitting_results(combined)
 
-        best_frame = self.adapter.compute_best_models(combined)
+        ranking_metric = server_settings.fitting.best_model_metric
+        normalized_metric = self.adapter.normalize_metric(ranking_metric)
+        best_frame = self.adapter.compute_best_models(combined, normalized_metric)
         self.serializer.save_best_fit(best_frame)
 
         experiment_count = int(processed.shape[0])
@@ -469,6 +476,7 @@ class FittingPipeline:
             "[INFO] ADSORFIT fitting completed.",
             f"Experiments processed: {experiment_count}",
             f"Optimization method: {self.solver.normalize_method(optimization_method)}",
+            f"Ranking metric: {normalized_metric}",
         ]
         summary_lines.append("Best model selection stored in database.")
         response["summary"] = "\n".join(summary_lines)

@@ -231,27 +231,59 @@ class DatasetAdapter:
 
     # -------------------------------------------------------------------------
     @staticmethod
-    def compute_best_models(dataset: pd.DataFrame) -> pd.DataFrame:
-        """Determine the best and worst model per experiment based on optimization scores.
+    def compute_best_models(dataset: pd.DataFrame, metric: str) -> pd.DataFrame:
+        """Determine the best and worst model per experiment using the chosen metric."""
+        suffix = DatasetAdapter.normalize_metric(metric)
+        candidates = DatasetAdapter.metric_priority(suffix)
 
-        Keyword arguments:
-        dataset -- Dataset containing per-model score columns for each experiment.
+        metric_columns: list[str] = []
+        selected_suffix = ""
+        for candidate in candidates:
+            metric_columns = [
+                column for column in dataset.columns if column.endswith(candidate)
+            ]
+            if metric_columns:
+                selected_suffix = candidate
+                break
 
-        Return value:
-        DataFrame extended with ``best model`` and ``worst model`` columns.
-        """
-        score_columns = [column for column in dataset.columns if column.endswith("score")]
-        if not score_columns:
-            logger.info("No score columns found; best model computation skipped")
+        if not metric_columns:
+            logger.info(
+                "No columns found for ranking metric %s; best model computation skipped",
+                metric,
+            )
             return dataset
 
-        best = dataset.copy()
-        # Minimum score identifies the best fitting model per experiment while the
-        # maximum highlights underperforming fits for diagnostics.
-        best["best model"] = dataset[score_columns].idxmin(axis=1).str.replace(
-            " score", ""
+        ranked = dataset.copy()
+        ranked_values = ranked[metric_columns].replace({np.inf: np.nan})
+        ranked["best model"] = ranked_values.idxmin(axis=1).str.replace(
+            f" {selected_suffix}", ""
         )
-        best["worst model"] = dataset[score_columns].idxmax(axis=1).str.replace(
-            " score", ""
+        ranked["worst model"] = ranked_values.idxmax(axis=1).str.replace(
+            f" {selected_suffix}", ""
         )
-        return best
+        return ranked
+
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def normalize_metric(metric: str) -> str:
+        normalized = metric.replace("-", "").replace("_", "").strip().upper()
+        if normalized == "AICC":
+            return "AICc"
+        if normalized == "AIC":
+            return "AIC"
+        if normalized == "SCORE":
+            return "score"
+        return "AICc"
+
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def metric_priority(primary: str) -> list[str]:
+        order = ["AICc", "AIC", "score"]
+        prioritized = [primary] + [metric for metric in order if metric != primary]
+        seen: set[str] = set()
+        unique: list[str] = []
+        for metric in prioritized:
+            if metric not in seen:
+                unique.append(metric)
+                seen.add(metric)
+        return unique
